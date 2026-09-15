@@ -53,6 +53,8 @@ public static class DependencyInjection
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IEmailService, SmtpEmailService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IBattleService, BattleService>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         // Typed HttpClient for Cloudflare Turnstile verification.
         services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();

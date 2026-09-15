@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VoteBattle.Api.Controllers;
+using VoteBattle.Api.Extensions;
 using VoteBattle.Api.Middleware;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.Entities;
@@ -104,6 +105,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Apply migrations and seed baseline data at startup.
+await app.InitializeDatabaseAsync();
 
 // --- Middleware pipeline --------------------------------------------------
 

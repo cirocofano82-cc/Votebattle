@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using VoteBattle.Core.Common;
 
@@ -11,6 +12,10 @@ public abstract class ApiControllerBase : ControllerBase
 {
     /// <summary>Best-effort client IP address for audit/anti-abuse.</summary>
     protected string? ClientIp => HttpContext.Connection.RemoteIpAddress?.ToString();
+
+    /// <summary>Id of the authenticated user, or null when unauthenticated.</summary>
+    protected Guid? CurrentUserId =>
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
     protected IActionResult FromResult(Result result)
     {

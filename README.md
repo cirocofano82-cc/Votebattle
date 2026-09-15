@@ -80,6 +80,14 @@ API → http://localhost:5000 · Swagger (dev) → http://localhost:5000/swagger
 > La connection string viene letta da `DATABASE_CONNECTION_STRING` (se impostata),
 > altrimenti da `ConnectionStrings:Default` in `appsettings.Development.json`.
 
+All'avvio l'app **applica automaticamente le migrazioni e fa il seed** (ruoli,
+utente admin, categorie, vote packages, blocklist email e 10 battle demo).
+
+**Utente admin di sviluppo** (cambiare in produzione via `SEED_ADMIN_EMAIL` /
+`SEED_ADMIN_PASSWORD`):
+- email: `admin@votebattle.local`
+- password: `Admin123!`
+
 ### 5. Frontend
 ```bash
 cd frontend
