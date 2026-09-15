@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace VoteBattle.Infrastructure.Data;
 
@@ -13,10 +12,6 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddEnvironmentVariables()
-            .Build();
-
         var connectionString =
             Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
             ?? "Host=localhost;Port=5432;Database=votebattle;Username=votebattle;Password=change_me_in_dev";

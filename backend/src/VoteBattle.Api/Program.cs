@@ -10,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Database (PostgreSQL via EF Core) + infrastructure services.
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Data protection is required by Identity's default token providers
+// (email confirmation, password reset tokens).
+builder.Services.AddDataProtection();
+
 // ASP.NET Core Identity (users + roles). Auth flows are wired in a later step.
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
