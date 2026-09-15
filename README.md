@@ -59,10 +59,26 @@ docker compose up -d
 ```bash
 cd backend
 dotnet restore
-dotnet ef database update --project src/VoteBattle.Infrastructure --startup-project src/VoteBattle.Api
+
+# Genera la migrazione iniziale (solo la prima volta).
+# Le migrazioni EF Core sono generate dal tool, non scritte a mano.
+dotnet tool install --global dotnet-ef   # se non hai già dotnet-ef
+dotnet ef migrations add InitialCreate \
+  --project src/VoteBattle.Infrastructure \
+  --startup-project src/VoteBattle.Api \
+  --output-dir Data/Migrations
+
+# Applica le migrazioni al database.
+dotnet ef database update \
+  --project src/VoteBattle.Infrastructure \
+  --startup-project src/VoteBattle.Api
+
 dotnet run --project src/VoteBattle.Api
 ```
 API → http://localhost:5000 · Swagger (dev) → http://localhost:5000/swagger
+
+> La connection string viene letta da `DATABASE_CONNECTION_STRING` (se impostata),
+> altrimenti da `ConnectionStrings:Default` in `appsettings.Development.json`.
 
 ### 5. Frontend
 ```bash
