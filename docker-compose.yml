@@ -1,0 +1,43 @@
+# ===========================================================================
+# VoteBattle - Local development environment
+#
+# Starts:
+#   - PostgreSQL  (the application database)
+#   - Mailhog     (a local SMTP server + web UI to catch verification emails)
+#
+# Usage:
+#   cp .env.example .env   # then edit values if needed
+#   docker compose up -d
+#
+# Mailhog web UI: http://localhost:8025
+# ===========================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: votebattle-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-votebattle}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-votebattle}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-votebattle} -d ${POSTGRES_DB:-votebattle}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: votebattle-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
+volumes:
+  postgres-data:
