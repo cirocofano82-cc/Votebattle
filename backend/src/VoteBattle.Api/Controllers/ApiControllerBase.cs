@@ -42,6 +42,7 @@ public abstract class ApiControllerBase : ControllerBase
         ErrorType.Forbidden => StatusCodes.Status403Forbidden,
         ErrorType.NotFound => StatusCodes.Status404NotFound,
         ErrorType.Conflict => StatusCodes.Status409Conflict,
+        ErrorType.InsufficientCredits => StatusCodes.Status402PaymentRequired,
         _ => StatusCodes.Status400BadRequest
     };
 }

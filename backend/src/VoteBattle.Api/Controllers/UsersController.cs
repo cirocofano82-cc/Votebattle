@@ -3,23 +3,33 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Auth;
+using VoteBattle.Core.DTOs.Credits;
+using VoteBattle.Core.DTOs.Votes;
 using VoteBattle.Core.Entities;
+using VoteBattle.Core.Interfaces;
 
 namespace VoteBattle.Api.Controllers;
 
 [Route("api/users")]
+[Authorize]
 public class UsersController : ApiControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ICreditService _creditService;
+    private readonly IVoteService _voteService;
 
-    public UsersController(UserManager<ApplicationUser> userManager)
+    public UsersController(
+        UserManager<ApplicationUser> userManager,
+        ICreditService creditService,
+        IVoteService voteService)
     {
         _userManager = userManager;
+        _creditService = creditService;
+        _voteService = voteService;
     }
 
     /// <summary>Returns the currently authenticated user (including credit balance).</summary>
     [HttpGet("me")]
-    [Authorize]
     public async Task<IActionResult> Me()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -39,5 +49,41 @@ public class UsersController : ApiControllerBase
         };
 
         return Ok(ApiResponse<AuthUserDto>.Ok(dto));
+    }
+
+    /// <summary>Current Vote Credit balance.</summary>
+    [HttpGet("me/credits")]
+    public async Task<IActionResult> Credits(CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var balance = await _creditService.GetBalanceAsync(userId.Value, ct);
+        return Ok(ApiResponse<CreditBalanceDto>.Ok(new CreditBalanceDto { Balance = balance }));
+    }
+
+    /// <summary>Paginated credit history (ledger).</summary>
+    [HttpGet("me/credits/history")]
+    public async Task<IActionResult> CreditHistory(int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var history = await _creditService.GetHistoryAsync(userId.Value, page, pageSize, ct);
+        return Ok(ApiResponse<PagedResult<CreditTransactionDto>>.Ok(history));
+    }
+
+    /// <summary>Paginated vote history for the current user.</summary>
+    [HttpGet("me/votes")]
+    public async Task<IActionResult> Votes(int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var votes = await _voteService.GetUserVotesAsync(userId.Value, page, pageSize, ct);
+        return Ok(ApiResponse<PagedResult<UserVoteDto>>.Ok(votes));
     }
 }
