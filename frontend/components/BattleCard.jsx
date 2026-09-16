@@ -29,7 +29,7 @@ export default function BattleCard({ battle }) {
       </div>
 
       <div className="px-4">
-        <VersusBar pa={a?.percentage ?? 0} />
+        <VersusBar pa={a?.percentage ?? 0} empty={(battle.totalVotes ?? 0) === 0} />
       </div>
       <div className="flex justify-between px-4 py-3 font-semibold text-sm">
         <span className="text-sidea">{formatPercent(a?.percentage)}</span>
