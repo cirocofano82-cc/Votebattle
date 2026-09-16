@@ -27,6 +27,12 @@ public class VoteService : IVoteService
     public async Task<Result<VoteResultDto>> CastVoteAsync(
         Guid userId, CreateVoteRequest request, string? ipAddress, CancellationToken ct = default)
     {
+        // 0. Validate the requested quantity (defense in depth; model validation also runs).
+        var quantity = request.Quantity;
+        if (quantity < 1 || quantity > CreateVoteRequest.MaxQuantity)
+            return Result<VoteResultDto>.Failure(ErrorType.Validation,
+                $"You can cast between 1 and {CreateVoteRequest.MaxQuantity} votes at a time.");
+
         // 1. Validate the acting user.
         var user = await _db.Users.AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
@@ -55,19 +61,19 @@ public class VoteService : IVoteService
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
         try
         {
-            // 3. Atomic conditional decrement. Only succeeds if the user still has a
-            //    credit; the row lock serializes concurrent votes by the same user.
+            // 3. Atomic conditional decrement. Only succeeds if the user still has
+            //    enough credits; the row lock serializes concurrent votes by the same user.
             var affected = await _db.Users
-                .Where(u => u.Id == userId && u.VoteCredits >= 1)
+                .Where(u => u.Id == userId && u.VoteCredits >= quantity)
                 .ExecuteUpdateAsync(s => s
-                    .SetProperty(u => u.VoteCredits, u => u.VoteCredits - 1)
+                    .SetProperty(u => u.VoteCredits, u => u.VoteCredits - quantity)
                     .SetProperty(u => u.UpdatedAt, now), ct);
 
             if (affected == 0)
             {
                 await tx.RollbackAsync(ct);
                 return Result<VoteResultDto>.Failure(ErrorType.InsufficientCredits,
-                    "You're out of Vote Credits. Get more credits to keep voting.");
+                    "You don't have enough Vote Credits. Get more credits to keep voting.");
             }
 
             // 4. Read the resulting balance for the ledger row and the response.
@@ -76,48 +82,51 @@ public class VoteService : IVoteService
                 .Select(u => u.VoteCredits)
                 .FirstAsync(ct);
 
-            // 5. Ledger row (VOTE_SPENT, -1) + the vote, linked via navigation.
+            // 5. One ledger row (VOTE_SPENT, -quantity) + N vote rows sharing it.
             var ledger = new VoteCreditTransaction
             {
                 UserId = userId,
                 Type = CreditTransactionType.VoteSpent,
-                Amount = -1,
+                Amount = -quantity,
                 BalanceAfter = newBalance,
                 ReferenceType = "Battle",
                 ReferenceId = battle.Id.ToString(),
                 CreatedAt = now
             };
-            var vote = new Vote
-            {
-                BattleId = battle.Id,
-                BattleParticipantId = participant.Id,
-                UserId = userId,
-                CreditTransaction = ledger,
-                CreatedAt = now
-            };
             _db.VoteCreditTransactions.Add(ledger);
-            _db.Votes.Add(vote);
+            for (var i = 0; i < quantity; i++)
+            {
+                _db.Votes.Add(new Vote
+                {
+                    BattleId = battle.Id,
+                    BattleParticipantId = participant.Id,
+                    UserId = userId,
+                    CreditTransaction = ledger,
+                    CreatedAt = now
+                });
+            }
 
-            // 6. Update denormalized counters.
+            // 6. Update denormalized counters by the voted quantity.
             await _db.BattleParticipants
                 .Where(p => p.Id == participant.Id)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.VoteCount, p => p.VoteCount + 1), ct);
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.VoteCount, p => p.VoteCount + quantity), ct);
             await _db.Battles
                 .Where(b => b.Id == battle.Id)
                 .ExecuteUpdateAsync(s => s
-                    .SetProperty(b => b.TotalVotes, b => b.TotalVotes + 1)
-                    .SetProperty(b => b.TotalAmountSpent, b => b.TotalAmountSpent + 1m)
+                    .SetProperty(b => b.TotalVotes, b => b.TotalVotes + quantity)
+                    .SetProperty(b => b.TotalAmountSpent, b => b.TotalAmountSpent + quantity)
                     .SetProperty(b => b.UpdatedAt, now), ct);
 
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
             await _audit.LogAsync(AuditEventType.VoteCreated, userId, ipAddress,
-                new { battleId = battle.Id, participantId = participant.Id }, ct);
+                new { battleId = battle.Id, participantId = participant.Id, quantity }, ct);
 
-            // 7. Build the up-to-date result in memory (counters were incremented by 1).
-            var result = BuildResult(battle, participant.Id, newBalance);
-            return Result<VoteResultDto>.Success(result, "Vote counted.");
+            // 7. Build the up-to-date result in memory (counters were incremented by quantity).
+            var result = BuildResult(battle, participant.Id, newBalance, quantity);
+            return Result<VoteResultDto>.Success(result,
+                quantity == 1 ? "Vote counted." : $"{quantity} votes counted.");
         }
         catch (Exception ex)
         {
@@ -155,14 +164,14 @@ public class VoteService : IVoteService
         return new PagedResult<UserVoteDto>(items, page, pageSize, totalCount);
     }
 
-    private static VoteResultDto BuildResult(Battle battle, Guid votedParticipantId, int newBalance)
+    private static VoteResultDto BuildResult(Battle battle, Guid votedParticipantId, int newBalance, int quantity)
     {
-        var newTotal = battle.TotalVotes + 1;
+        var newTotal = battle.TotalVotes + quantity;
         var participants = battle.Participants
             .OrderBy(p => p.Position)
             .Select(p =>
             {
-                var count = p.VoteCount + (p.Id == votedParticipantId ? 1 : 0);
+                var count = p.VoteCount + (p.Id == votedParticipantId ? quantity : 0);
                 return new BattleParticipantDto
                 {
                     Id = p.Id,
@@ -180,7 +189,7 @@ public class VoteService : IVoteService
         {
             NewBalance = newBalance,
             BattleTotalVotes = newTotal,
-            BattleTotalAmountSpent = battle.TotalAmountSpent + 1m,
+            BattleTotalAmountSpent = battle.TotalAmountSpent + quantity,
             Participants = participants
         };
     }

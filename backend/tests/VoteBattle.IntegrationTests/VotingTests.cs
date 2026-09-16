@@ -39,6 +39,54 @@ public class VotingTests
         Assert.Equal(4, data.GetProperty("newBalance").GetInt32()); // 5 -> 4
     }
 
+    [Fact]
+    public async Task Vote_with_quantity_spends_that_many_credits()
+    {
+        var client = _factory.CreateClient();
+        var user = await client.RegisterVerifyLoginAsync(_factory);
+        await SetCreditsAsync(user.Email, 5);
+        var (battleId, participantId) = await client.GetFirstBattleAsync();
+
+        var resp = await client.PostAsJsonAsync("/api/votes",
+            new { battleId, battleParticipantId = participantId, quantity = 3 });
+        resp.EnsureSuccessStatusCode();
+
+        var data = await resp.ReadDataAsync();
+        Assert.Equal(2, data.GetProperty("newBalance").GetInt32()); // 5 -> 2
+        Assert.Equal(2, await GetCreditsAsync(user.Email));
+    }
+
+    /// <summary>CRITICAL INVARIANT: you cannot spend more credits than you have.</summary>
+    [Fact]
+    public async Task Vote_with_quantity_over_balance_is_rejected()
+    {
+        var client = _factory.CreateClient();
+        var user = await client.RegisterVerifyLoginAsync(_factory);
+        await SetCreditsAsync(user.Email, 2);
+        var (battleId, participantId) = await client.GetFirstBattleAsync();
+
+        var resp = await client.PostAsJsonAsync("/api/votes",
+            new { battleId, battleParticipantId = participantId, quantity = 3 });
+
+        Assert.Equal(HttpStatusCode.PaymentRequired, resp.StatusCode); // 402
+        Assert.Equal(2, await GetCreditsAsync(user.Email)); // unchanged
+    }
+
+    [Fact]
+    public async Task Vote_with_zero_quantity_is_rejected()
+    {
+        var client = _factory.CreateClient();
+        var user = await client.RegisterVerifyLoginAsync(_factory);
+        await SetCreditsAsync(user.Email, 5);
+        var (battleId, participantId) = await client.GetFirstBattleAsync();
+
+        var resp = await client.PostAsJsonAsync("/api/votes",
+            new { battleId, battleParticipantId = participantId, quantity = 0 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode); // validation
+        Assert.Equal(5, await GetCreditsAsync(user.Email)); // unchanged
+    }
+
     /// <summary>CRITICAL INVARIANT: no vote can be cast without a credit.</summary>
     [Fact]
     public async Task Vote_without_credits_is_rejected()
