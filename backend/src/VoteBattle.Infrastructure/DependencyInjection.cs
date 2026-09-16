@@ -76,6 +76,9 @@ public static class DependencyInjection
         services.AddScoped<IStripeWebhookService, StripeWebhookService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IVotePackageAdminService, VotePackageAdminService>();
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
 
         // Typed HttpClient for Cloudflare Turnstile verification.
         services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();
