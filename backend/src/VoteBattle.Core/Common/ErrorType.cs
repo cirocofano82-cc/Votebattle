@@ -12,5 +12,6 @@ public enum ErrorType
     Forbidden = 3,           // 403
     NotFound = 4,            // 404
     Conflict = 5,            // 409
-    InsufficientCredits = 6  // 402 (out of Vote Credits)
+    InsufficientCredits = 6, // 402 (out of Vote Credits)
+    TooManyRequests = 7      // 429
 }

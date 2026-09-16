@@ -46,6 +46,12 @@ public static class DependencyInjection
             o.WebhookSecret = configuration["STRIPE_WEBHOOK_SECRET"] ?? string.Empty;
         });
 
+        services.Configure<CommentOptions>(o =>
+        {
+            if (int.TryParse(configuration["COMMENT_MIN_INTERVAL_SECONDS"], out var s)) o.MinIntervalSeconds = s;
+            if (int.TryParse(configuration["COMMENT_DUPLICATE_WINDOW_MINUTES"], out var m)) o.DuplicateWindowMinutes = m;
+        });
+
         services.Configure<EmailOptions>(o =>
         {
             o.FromAddress = configuration["EMAIL_FROM_ADDRESS"] ?? o.FromAddress;
@@ -68,6 +74,8 @@ public static class DependencyInjection
         services.AddScoped<IVotePackageService, VotePackageService>();
         services.AddScoped<IPaymentService, StripePaymentService>();
         services.AddScoped<IStripeWebhookService, StripeWebhookService>();
+        services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IReportService, ReportService>();
 
         // Typed HttpClient for Cloudflare Turnstile verification.
         services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();
