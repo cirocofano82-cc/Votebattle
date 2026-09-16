@@ -6,6 +6,7 @@ using VoteBattle.Core.Options;
 using VoteBattle.Infrastructure.Captcha;
 using VoteBattle.Infrastructure.Data;
 using VoteBattle.Infrastructure.Email;
+using VoteBattle.Infrastructure.Payments;
 using VoteBattle.Infrastructure.Services;
 
 namespace VoteBattle.Infrastructure;
@@ -38,6 +39,13 @@ public static class DependencyInjection
             o.SecretKey = configuration["TURNSTILE_SECRET_KEY"] ?? string.Empty;
         });
 
+        services.Configure<StripeOptions>(o =>
+        {
+            o.SecretKey = configuration["STRIPE_SECRET_KEY"] ?? string.Empty;
+            o.PublishableKey = configuration["STRIPE_PUBLISHABLE_KEY"] ?? string.Empty;
+            o.WebhookSecret = configuration["STRIPE_WEBHOOK_SECRET"] ?? string.Empty;
+        });
+
         services.Configure<EmailOptions>(o =>
         {
             o.FromAddress = configuration["EMAIL_FROM_ADDRESS"] ?? o.FromAddress;
@@ -57,6 +65,9 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IVoteService, VoteService>();
         services.AddScoped<ICreditService, CreditService>();
+        services.AddScoped<IVotePackageService, VotePackageService>();
+        services.AddScoped<IPaymentService, StripePaymentService>();
+        services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 
         // Typed HttpClient for Cloudflare Turnstile verification.
         services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();
