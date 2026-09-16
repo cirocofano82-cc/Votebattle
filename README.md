@@ -96,6 +96,19 @@ npm run dev
 ```
 App → http://localhost:3000
 
+### 6. Test (backend)
+```bash
+cd backend
+# Crea un database di test una tantum:
+#   sudo -u postgres psql -c "CREATE DATABASE votebattle_test OWNER votebattle;"
+
+DATABASE_CONNECTION_STRING="Host=localhost;Port=5432;Database=votebattle_test;Username=votebattle;Password=change_me_in_dev" \
+STRIPE_WEBHOOK_SECRET="whsec_test_secret_123" \
+dotnet test
+```
+Copre le invarianti critiche: niente voto senza credito, niente saldo negativo su voti
+concorrenti, niente doppio bonus, webhook idempotente, rate limiting commenti, autorizzazione admin.
+
 ## Sicurezza e note
 
 - I **secret non vanno mai committati**: solo `.env.example` è versionato.
