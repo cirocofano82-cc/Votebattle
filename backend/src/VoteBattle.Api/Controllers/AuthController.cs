@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Auth;
 using VoteBattle.Core.Entities;
@@ -8,6 +9,7 @@ using VoteBattle.Core.Interfaces;
 namespace VoteBattle.Api.Controllers;
 
 [Route("api/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;

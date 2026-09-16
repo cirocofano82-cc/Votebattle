@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Votes;
 using VoteBattle.Core.Interfaces;
@@ -8,6 +9,7 @@ namespace VoteBattle.Api.Controllers;
 
 [Route("api/votes")]
 [Authorize]
+[EnableRateLimiting("vote")]
 public class VotesController : ApiControllerBase
 {
     private readonly IVoteService _voteService;

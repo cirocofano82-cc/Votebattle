@@ -1,12 +1,17 @@
+using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VoteBattle.Api.Controllers;
 using VoteBattle.Api.Extensions;
 using VoteBattle.Api.Middleware;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.Entities;
+using VoteBattle.Core.Options;
 using VoteBattle.Infrastructure;
 using VoteBattle.Infrastructure.Data;
 
@@ -87,6 +92,51 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// --- Rate limiting (per user id, or IP when anonymous) --------------------
+var rl = new RateLimitOptions();
+if (int.TryParse(builder.Configuration["RATELIMIT_AUTH_PER_MINUTE"], out var aRl)) rl.AuthPerMinute = aRl;
+if (int.TryParse(builder.Configuration["RATELIMIT_VOTE_PER_MINUTE"], out var vRl)) rl.VotePerMinute = vRl;
+if (int.TryParse(builder.Configuration["RATELIMIT_COMMENT_PER_MINUTE"], out var cRl)) rl.CommentPerMinute = cRl;
+if (int.TryParse(builder.Configuration["RATELIMIT_CHECKOUT_PER_MINUTE"], out var koRl)) rl.CheckoutPerMinute = koRl;
+if (int.TryParse(builder.Configuration["RATELIMIT_WEBHOOK_PER_MINUTE"], out var wRl)) rl.WebhookPerMinute = wRl;
+
+static string PartitionKey(HttpContext ctx) =>
+    ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+    ?? ctx.Connection.RemoteIpAddress?.ToString()
+    ?? "anonymous";
+
+RateLimitPartition<string> FixedWindow(HttpContext ctx, int perMinute) =>
+    RateLimitPartition.GetFixedWindowLimiter(PartitionKey(ctx), _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = perMinute,
+        Window = TimeSpan.FromMinutes(1),
+        QueueLimit = 0
+    });
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", ctx => FixedWindow(ctx, rl.AuthPerMinute));
+    options.AddPolicy("vote", ctx => FixedWindow(ctx, rl.VotePerMinute));
+    options.AddPolicy("comment", ctx => FixedWindow(ctx, rl.CommentPerMinute));
+    options.AddPolicy("checkout", ctx => FixedWindow(ctx, rl.CheckoutPerMinute));
+    options.AddPolicy("webhook", ctx => FixedWindow(ctx, rl.WebhookPerMinute));
+
+    options.OnRejected = async (context, token) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString();
+
+        context.HttpContext.Response.ContentType = "application/json";
+        var body = ApiResponse.Fail("Too many requests. Please slow down and try again shortly.");
+        await context.HttpContext.Response.WriteAsync(
+            JsonSerializer.Serialize(body, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            token);
+    };
+});
+
 // CORS so the Next.js frontend (a different origin) can call the API with cookies.
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 builder.Services.AddCors(options =>
@@ -109,9 +159,28 @@ var app = builder.Build();
 // Apply migrations and seed baseline data at startup.
 await app.InitializeDatabaseAsync();
 
+// In production, CAPTCHA must be enabled.
+if (!app.Environment.IsDevelopment() &&
+    !string.Equals(app.Configuration["TURNSTILE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase))
+{
+    app.Logger.LogWarning(
+        "TURNSTILE_ENABLED is not 'true' in a non-Development environment. " +
+        "CAPTCHA protection is DISABLED — set TURNSTILE_ENABLED=true for production.");
+}
+
 // --- Middleware pipeline --------------------------------------------------
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Basic security headers.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -123,9 +192,11 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseRouting();
 app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

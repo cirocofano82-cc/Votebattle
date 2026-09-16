@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Comments;
 using VoteBattle.Core.DTOs.Reports;
@@ -29,6 +30,7 @@ public class CommentsController : ApiControllerBase
 
     [HttpPost("api/battles/{battleId:guid}/comments")]
     [Authorize]
+    [EnableRateLimiting("comment")]
     public async Task<IActionResult> CreateComment(Guid battleId, [FromBody] CreateCommentRequest request, CancellationToken ct)
     {
         var userId = CurrentUserId;
@@ -42,6 +44,7 @@ public class CommentsController : ApiControllerBase
     /// <summary>Toggles the current user's like on a comment.</summary>
     [HttpPost("api/comments/{id:guid}/like")]
     [Authorize]
+    [EnableRateLimiting("comment")]
     public async Task<IActionResult> ToggleLike(Guid id, CancellationToken ct)
     {
         var userId = CurrentUserId;
@@ -55,6 +58,7 @@ public class CommentsController : ApiControllerBase
     /// <summary>Reports a comment.</summary>
     [HttpPost("api/comments/{id:guid}/report")]
     [Authorize]
+    [EnableRateLimiting("comment")]
     public async Task<IActionResult> ReportComment(Guid id, [FromBody] ReportReasonRequest request, CancellationToken ct)
     {
         var userId = CurrentUserId;

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Payments;
 using VoteBattle.Core.Interfaces;
@@ -21,6 +22,7 @@ public class PaymentsController : ApiControllerBase
     /// <summary>Starts a Stripe Checkout Session for a vote package. Returns the redirect URL.</summary>
     [HttpPost("checkout")]
     [Authorize]
+    [EnableRateLimiting("checkout")]
     public async Task<IActionResult> Checkout([FromBody] CreateCheckoutRequest request, CancellationToken ct)
     {
         var userId = CurrentUserId;
@@ -37,6 +39,7 @@ public class PaymentsController : ApiControllerBase
     /// </summary>
     [HttpPost("webhook")]
     [AllowAnonymous]
+    [EnableRateLimiting("webhook")]
     public async Task<IActionResult> Webhook(CancellationToken ct)
     {
         using var reader = new StreamReader(Request.Body);
