@@ -1,15 +1,17 @@
 # ===========================================================================
-# VoteBattle - Local development environment
+# VoteBattle - full local stack (PostgreSQL + Mailhog + API + Web)
 #
-# Starts:
-#   - PostgreSQL  (the application database)
-#   - Mailhog     (a local SMTP server + web UI to catch verification emails)
+#   cp .env.example .env    # then edit values
+#   docker compose up --build
 #
-# Usage:
-#   cp .env.example .env   # then edit values if needed
-#   docker compose up -d
+# Web:     http://localhost:3000
+# API:     http://localhost:5000  (Swagger at /swagger)
+# Mailhog: http://localhost:8025
 #
-# Mailhog web UI: http://localhost:8025
+# Note: the api service runs with ASPNETCORE_ENVIRONMENT=Development so it works
+# over plain HTTP locally (no HTTPS redirect, CAPTCHA off, Swagger on). In real
+# production use Environment=Production behind a TLS-terminating reverse proxy
+# and set TURNSTILE_ENABLED=true. See DEPLOYMENT.md.
 # ===========================================================================
 
 services:
@@ -38,6 +40,44 @@ services:
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
+
+  api:
+    build: ./backend
+    container_name: votebattle-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-votebattle};Username=${POSTGRES_USER:-votebattle};Password=${POSTGRES_PASSWORD:-change_me_in_dev}"
+      FRONTEND_URL: "http://localhost:3000"
+      SMTP_HOST: "mailhog"
+      SMTP_PORT: "1025"
+      STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
+      STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY:-}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
+      TURNSTILE_ENABLED: "${TURNSTILE_ENABLED:-false}"
+      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
+      SEED_ADMIN_EMAIL: "${SEED_ADMIN_EMAIL:-admin@votebattle.local}"
+      SEED_ADMIN_PASSWORD: "${SEED_ADMIN_PASSWORD:-Admin123!}"
+    ports:
+      - "5000:8080"
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: "http://localhost:5000/api"
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "${STRIPE_PUBLISHABLE_KEY:-}"
+    container_name: votebattle-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres-data:

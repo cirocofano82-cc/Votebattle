@@ -50,10 +50,17 @@ cp .env.example .env
 
 ### 3. Servizi locali (database + email)
 ```bash
-docker compose up -d
+docker compose up -d postgres mailhog
 ```
 - PostgreSQL → `localhost:5432`
 - Mailhog (cattura le email di verifica) → http://localhost:8025
+
+> **Stack completo con Docker** (DB + Mailhog + API + Web):
+> ```bash
+> docker compose up --build
+> ```
+> Web → http://localhost:3000 · API → http://localhost:5000 · Mailhog → http://localhost:8025.
+> Per il deploy in produzione vedi **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
 ### 4. Backend
 ```bash
