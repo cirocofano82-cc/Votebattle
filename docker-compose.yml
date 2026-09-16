@@ -76,6 +76,10 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    environment:
+      # Server-side (SSR) calls reach the API inside the Docker network here,
+      # while the browser uses the build-time NEXT_PUBLIC_API_BASE_URL above.
+      INTERNAL_API_BASE_URL: "http://api:8080/api"
     ports:
       - "3000:3000"
 

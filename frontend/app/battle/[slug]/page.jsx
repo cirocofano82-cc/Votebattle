@@ -4,11 +4,11 @@ import VotePanel from "@/components/VotePanel";
 import Comments from "@/components/Comments";
 import ShareButtons from "@/components/ShareButtons";
 import OwnerActions from "@/components/OwnerActions";
-import { API_BASE_URL } from "@/lib/api";
+import { SERVER_API_BASE_URL } from "@/lib/api";
 
 async function getBattle(slug) {
   try {
-    const res = await fetch(`${API_BASE_URL}/battles/${slug}`, { next: { revalidate: 30 } });
+    const res = await fetch(`${SERVER_API_BASE_URL}/battles/${slug}`, { next: { revalidate: 30 } });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data;

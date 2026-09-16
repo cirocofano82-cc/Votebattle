@@ -5,6 +5,12 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
+// Base URL for server-side (SSR) fetches. In Docker the browser reaches the API
+// at localhost:5000, but the web container reaches it internally at
+// http://api:8080/api. Set INTERNAL_API_BASE_URL as a runtime env var for that.
+export const SERVER_API_BASE_URL =
+  process.env.INTERNAL_API_BASE_URL || API_BASE_URL;
+
 export async function apiFetch(path, options = {}) {
   const { method = "GET", body, headers, cache, next } = options;
 

@@ -3,11 +3,11 @@ import BattleCard from "@/components/BattleCard";
 import ContenderAvatar from "@/components/ContenderAvatar";
 import VersusBar from "@/components/VersusBar";
 import { formatNumber, formatPercent } from "@/lib/format";
-import { API_BASE_URL } from "@/lib/api";
+import { SERVER_API_BASE_URL } from "@/lib/api";
 
 async function getTrending() {
   try {
-    const res = await fetch(`${API_BASE_URL}/battles?sort=trending&pageSize=7`, {
+    const res = await fetch(`${SERVER_API_BASE_URL}/battles?sort=trending&pageSize=7`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
