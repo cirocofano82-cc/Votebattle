@@ -40,6 +40,14 @@ public class StripePaymentService : IPaymentService
     public async Task<Result<CheckoutSessionDto>> CreateCheckoutSessionAsync(
         Guid userId, int votePackageId, CancellationToken ct = default)
     {
+        // Fail fast (and create no payment row) when Stripe isn't configured yet.
+        if (string.IsNullOrWhiteSpace(_stripe.SecretKey))
+        {
+            _logger.LogWarning("Checkout requested but Stripe is not configured (missing secret key).");
+            return Result<CheckoutSessionDto>.Failure(ErrorType.Validation,
+                "Payments aren't available right now. Please try again later.");
+        }
+
         var package = await _db.VotePackages
             .FirstOrDefaultAsync(p => p.Id == votePackageId && p.IsActive, ct);
         if (package is null)
@@ -108,7 +116,11 @@ public class StripePaymentService : IPaymentService
         catch (Exception ex)
         {
             // Any failure (Stripe error, network/proxy issue) must not surface as a 500.
+            // The checkout never started, so drop the pending payment instead of leaving
+            // an orphan row that would clutter the user's purchase history.
             _logger.LogError(ex, "Stripe checkout session creation failed for user {UserId}.", userId);
+            _db.Payments.Remove(payment);
+            await _db.SaveChangesAsync(ct);
             return Result<CheckoutSessionDto>.Failure(ErrorType.Validation,
                 "Could not start checkout. Please try again.");
         }

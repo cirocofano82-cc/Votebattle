@@ -47,7 +47,11 @@ public class ProfileService : IProfileService
         page = page < 1 ? 1 : page;
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
 
-        var q = _db.Payments.AsNoTracking().Where(p => p.UserId == userId);
+        // Only show settled payments. Pending rows are in-progress or abandoned
+        // checkouts (the Stripe webhook is the source of truth) and would only
+        // confuse the purchase history.
+        var q = _db.Payments.AsNoTracking()
+            .Where(p => p.UserId == userId && p.Status != PaymentStatus.Pending);
         var total = await q.CountAsync(ct);
 
         var items = await q
