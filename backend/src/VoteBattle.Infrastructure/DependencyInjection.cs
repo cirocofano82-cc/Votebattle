@@ -71,6 +71,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IVoteService, VoteService>();
         services.AddScoped<ICreditService, CreditService>();
+        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IVotePackageService, VotePackageService>();
         services.AddScoped<IPaymentService, StripePaymentService>();
         services.AddScoped<IStripeWebhookService, StripeWebhookService>();

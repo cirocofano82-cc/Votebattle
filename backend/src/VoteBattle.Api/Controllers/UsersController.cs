@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using VoteBattle.Core.Common;
 using VoteBattle.Core.DTOs.Auth;
 using VoteBattle.Core.DTOs.Credits;
+using VoteBattle.Core.DTOs.Payments;
+using VoteBattle.Core.DTOs.Profile;
 using VoteBattle.Core.DTOs.Votes;
 using VoteBattle.Core.Entities;
 using VoteBattle.Core.Interfaces;
@@ -17,15 +19,18 @@ public class UsersController : ApiControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ICreditService _creditService;
     private readonly IVoteService _voteService;
+    private readonly IProfileService _profileService;
 
     public UsersController(
         UserManager<ApplicationUser> userManager,
         ICreditService creditService,
-        IVoteService voteService)
+        IVoteService voteService,
+        IProfileService profileService)
     {
         _userManager = userManager;
         _creditService = creditService;
         _voteService = voteService;
+        _profileService = profileService;
     }
 
     /// <summary>Returns the currently authenticated user (including credit balance).</summary>
@@ -85,5 +90,32 @@ public class UsersController : ApiControllerBase
 
         var votes = await _voteService.GetUserVotesAsync(userId.Value, page, pageSize, ct);
         return Ok(ApiResponse<PagedResult<UserVoteDto>>.Ok(votes));
+    }
+
+    /// <summary>Aggregated profile stats for the current user.</summary>
+    [HttpGet("me/profile")]
+    public async Task<IActionResult> Profile(CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var profile = await _profileService.GetProfileAsync(userId.Value, ct);
+        if (profile is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        return Ok(ApiResponse<ProfileStatsDto>.Ok(profile));
+    }
+
+    /// <summary>Paginated purchase history for the current user.</summary>
+    [HttpGet("me/payments")]
+    public async Task<IActionResult> Payments(int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var payments = await _profileService.GetPaymentsAsync(userId.Value, page, pageSize, ct);
+        return Ok(ApiResponse<PagedResult<PaymentDto>>.Ok(payments));
     }
 }
