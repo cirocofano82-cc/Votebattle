@@ -138,6 +138,64 @@ public class BattleService : IBattleService
         return Result<string>.Success(slug, "Battle submitted and is pending moderation.");
     }
 
+    public async Task<Result<BattleDetailDto>> GetForEditAsync(Guid battleId, Guid userId, bool isAdmin, CancellationToken ct = default)
+    {
+        var battle = await _db.Battles
+            .AsNoTracking()
+            .Include(b => b.Category)
+            .Include(b => b.Participants)
+            .FirstOrDefaultAsync(b => b.Id == battleId, ct);
+
+        if (battle is null)
+            return Result<BattleDetailDto>.Failure(ErrorType.NotFound, "Battle not found.");
+        if (!isAdmin && battle.CreatedByUserId != userId)
+            return Result<BattleDetailDto>.Failure(ErrorType.Forbidden, "You can only edit your own battles.");
+
+        return Result<BattleDetailDto>.Success(MapDetail(battle));
+    }
+
+    public async Task<Result<string>> UpdateBattleAsync(
+        Guid battleId, Guid userId, bool isAdmin, UpdateBattleRequest request, CancellationToken ct = default)
+    {
+        var battle = await _db.Battles
+            .Include(b => b.Participants)
+            .FirstOrDefaultAsync(b => b.Id == battleId, ct);
+
+        if (battle is null)
+            return Result<string>.Failure(ErrorType.NotFound, "Battle not found.");
+        if (!isAdmin && battle.CreatedByUserId != userId)
+            return Result<string>.Failure(ErrorType.Forbidden, "You can only edit your own battles.");
+
+        var categoryExists = await _db.Categories.AnyAsync(c => c.Id == request.CategoryId && c.IsActive, ct);
+        if (!categoryExists)
+            return Result<string>.Failure(ErrorType.Validation, "The selected category does not exist.");
+
+        battle.Title = request.Title.Trim();
+        battle.Description = request.Description?.Trim();
+        battle.CategoryId = request.CategoryId;
+        battle.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Update the two contenders by position (1 = A, 2 = B). Slug is kept stable
+        // so existing links and SEO are not broken.
+        var a = battle.Participants.FirstOrDefault(p => p.Position == 1);
+        var b = battle.Participants.FirstOrDefault(p => p.Position == 2);
+        if (a is not null)
+        {
+            a.Name = request.CompetitorA.Name.Trim();
+            a.Description = request.CompetitorA.Description?.Trim();
+            a.ImageUrl = request.CompetitorA.ImageUrl?.Trim();
+        }
+        if (b is not null)
+        {
+            b.Name = request.CompetitorB.Name.Trim();
+            b.Description = request.CompetitorB.Description?.Trim();
+            b.ImageUrl = request.CompetitorB.ImageUrl?.Trim();
+        }
+
+        await _db.SaveChangesAsync(ct);
+        return Result<string>.Success(battle.Slug, "Battle updated.");
+    }
+
     // --- Helpers ----------------------------------------------------------
 
     private async Task<string> GenerateUniqueSlugAsync(string title, CancellationToken ct)
@@ -181,6 +239,8 @@ public class BattleService : IBattleService
         Slug = b.Slug,
         Description = b.Description,
         Status = b.Status.ToString(),
+        CreatedByUserId = b.CreatedByUserId,
+        CategoryId = b.CategoryId,
         CategoryName = b.Category?.Name ?? string.Empty,
         CategorySlug = b.Category?.Slug ?? string.Empty,
         TotalVotes = b.TotalVotes,

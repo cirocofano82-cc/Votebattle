@@ -10,6 +10,8 @@ public class BattleDetailDto
     public string Slug { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string Status { get; set; } = string.Empty;
+    public Guid CreatedByUserId { get; set; }
+    public int CategoryId { get; set; }
 
     public string CategoryName { get; set; } = string.Empty;
     public string CategorySlug { get; set; } = string.Empty;

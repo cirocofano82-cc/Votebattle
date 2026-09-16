@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import VotePanel from "@/components/VotePanel";
 import Comments from "@/components/Comments";
 import ShareButtons from "@/components/ShareButtons";
+import OwnerActions from "@/components/OwnerActions";
 import { API_BASE_URL } from "@/lib/api";
 
 async function getBattle(slug) {
@@ -60,6 +61,9 @@ export default async function BattlePage({ params }) {
           {battle.description && (
             <p className="text-muted mt-3 max-w-[65ch]">{battle.description}</p>
           )}
+          <div className="mt-3">
+            <OwnerActions battle={battle} />
+          </div>
         </div>
 
         <VotePanel battle={battle} />

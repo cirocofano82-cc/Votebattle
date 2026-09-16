@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 
@@ -46,6 +47,7 @@ export default function AdminBattles() {
                 <div className="text-muted text-sm">{b.categoryName} · by {b.createdByUsername} · {b.status}</div>
               </div>
               <div className="flex gap-2">
+                <Link href={`/edit-battle/${b.id}`} className="btn btn-ghost">Edit</Link>
                 {b.status !== "Active" && (
                   <button className="btn btn-a" disabled={busy === b.id + "Approve"} onClick={() => moderate(b.id, "Approve")}>Approve</button>
                 )}

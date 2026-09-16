@@ -56,4 +56,30 @@ public class BattlesController : ApiControllerBase
         var result = await _battleService.CreateBattleAsync(userId.Value, request, ct);
         return FromResult(result);
     }
+
+    /// <summary>Returns a battle for editing (owner or admin), regardless of status.</summary>
+    [HttpGet("{id:guid}/edit")]
+    [Authorize]
+    public async Task<IActionResult> GetForEdit(Guid id, CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var result = await _battleService.GetForEditAsync(id, userId.Value, IsAdmin, ct);
+        return FromResult(result);
+    }
+
+    /// <summary>Updates a battle (owner or admin). Slug is kept stable.</summary>
+    [HttpPut("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBattleRequest request, CancellationToken ct)
+    {
+        var userId = CurrentUserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("Not authenticated."));
+
+        var result = await _battleService.UpdateBattleAsync(id, userId.Value, IsAdmin, request, ct);
+        return FromResult(result);
+    }
 }

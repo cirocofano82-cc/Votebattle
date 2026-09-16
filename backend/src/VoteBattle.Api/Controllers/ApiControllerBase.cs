@@ -17,6 +17,9 @@ public abstract class ApiControllerBase : ControllerBase
     protected Guid? CurrentUserId =>
         Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
+    /// <summary>True when the current user is in the Admin role.</summary>
+    protected bool IsAdmin => User.IsInRole("Admin");
+
     protected IActionResult FromResult(Result result)
     {
         if (result.Succeeded)
