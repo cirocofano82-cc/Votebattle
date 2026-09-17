@@ -1,8 +1,5 @@
 import Link from "next/link";
-import BattleCard from "@/components/BattleCard";
-import ContenderAvatar from "@/components/ContenderAvatar";
-import VersusBar from "@/components/VersusBar";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { HomeFeatured, HomeTrending } from "@/components/HomeBattles";
 import { SERVER_API_BASE_URL } from "@/lib/api";
 
 async function getTrending() {
@@ -20,8 +17,6 @@ async function getTrending() {
 
 export default async function Home() {
   const battles = await getTrending();
-  const featured = battles[0];
-  const rest = battles.slice(1);
 
   return (
     <>
@@ -42,7 +37,7 @@ export default async function Home() {
             </div>
           </div>
 
-          {featured ? <FeaturedCard battle={featured} /> : <EmptyFeatured />}
+          <HomeFeatured initialBattles={battles} />
         </div>
       </section>
 
@@ -55,62 +50,8 @@ export default async function Home() {
           <Link href="/battles" className="btn btn-ghost">View all</Link>
         </div>
 
-        {rest.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rest.map((b) => (
-              <BattleCard key={b.id} battle={b} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted">No battles to show yet. The API may still be starting up.</p>
-        )}
+        <HomeTrending initialBattles={battles} />
       </section>
     </>
-  );
-}
-
-function FeaturedCard({ battle }) {
-  const [a, b] = battle.participants || [];
-  return (
-    <div className="card overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4">
-        <span className="chip">{battle.categoryName}</span>
-        <span className="chip">🔥 Trending #1</span>
-      </div>
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 p-4">
-        <div className="flex flex-col items-center text-center gap-2">
-          <ContenderAvatar name={a?.name} imageUrl={a?.imageUrl} side="a" size="lg" />
-          <span className="font-semibold">{a?.name}</span>
-        </div>
-        <span className="font-display text-muted text-xl">VS</span>
-        <div className="flex flex-col items-center text-center gap-2">
-          <ContenderAvatar name={b?.name} imageUrl={b?.imageUrl} side="b" size="lg" />
-          <span className="font-semibold">{b?.name}</span>
-        </div>
-      </div>
-      <div className="px-4"><VersusBar pa={a?.percentage ?? 0} /></div>
-      <div className="flex justify-between px-4 pt-2 font-bold">
-        <span className="text-sidea">{formatPercent(a?.percentage)}</span>
-        <span className="text-sideb">{formatPercent(b?.percentage)}</span>
-      </div>
-      <div className="flex justify-between px-4 pt-1 text-sm text-muted tnum">
-        <span>{formatNumber(a?.voteCount)} votes</span>
-        <span>{formatNumber(b?.voteCount)} votes</span>
-      </div>
-      <div className="p-4">
-        <Link href={`/battle/${battle.slug}`} className="btn btn-ink w-full">
-          Vote in this battle →
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function EmptyFeatured() {
-  return (
-    <div className="card p-8 text-center text-muted">
-      <p className="font-display text-2xl text-text mb-2">No featured battle</p>
-      <p>Start the backend API to see live battles here.</p>
-    </div>
   );
 }
