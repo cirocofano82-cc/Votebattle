@@ -52,6 +52,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-votebattle};Username=${POSTGRES_USER:-votebattle};Password=${POSTGRES_PASSWORD:-change_me_in_dev}"
       FRONTEND_URL: "http://localhost:3000"
+      # Uploaded images are stored here (persisted by the uploads-data volume) and
+      # served at {BACKEND_PUBLIC_URL}/uploads/... for the browser to load.
+      UPLOADS_PATH: "/app/uploads"
+      BACKEND_PUBLIC_URL: "http://localhost:5000"
       SMTP_HOST: "mailhog"
       SMTP_PORT: "1025"
       STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY:-}"
@@ -62,6 +66,8 @@ services:
       TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
       SEED_ADMIN_EMAIL: "${SEED_ADMIN_EMAIL:-admin@votebattle.local}"
       SEED_ADMIN_PASSWORD: "${SEED_ADMIN_PASSWORD:-Admin123!}"
+    volumes:
+      - uploads-data:/app/uploads
     ports:
       - "5000:8080"
 
@@ -85,3 +91,4 @@ services:
 
 volumes:
   postgres-data:
+  uploads-data:

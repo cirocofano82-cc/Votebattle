@@ -9,6 +9,7 @@ using VoteBattle.Infrastructure.Data;
 using VoteBattle.Infrastructure.Email;
 using VoteBattle.Infrastructure.Payments;
 using VoteBattle.Infrastructure.Services;
+using VoteBattle.Infrastructure.Storage;
 
 namespace VoteBattle.Infrastructure;
 
@@ -58,6 +59,15 @@ public static class DependencyInjection
             if (int.TryParse(configuration["COMMENT_DUPLICATE_WINDOW_MINUTES"], out var m)) o.DuplicateWindowMinutes = m;
         });
 
+        services.Configure<StorageOptions>(o =>
+        {
+            o.UploadsPath = configuration["UPLOADS_PATH"] ?? o.UploadsPath;
+            o.PublicBaseUrl = configuration["BACKEND_PUBLIC_URL"]
+                ?? configuration["BACKEND_URL"]
+                ?? o.PublicBaseUrl;
+            if (long.TryParse(configuration["UPLOADS_MAX_BYTES"], out var maxBytes)) o.MaxImageBytes = maxBytes;
+        });
+
         services.Configure<EmailOptions>(o =>
         {
             o.FromAddress = configuration["EMAIL_FROM_ADDRESS"] ?? o.FromAddress;
@@ -86,6 +96,7 @@ public static class DependencyInjection
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IVotePackageAdminService, VotePackageAdminService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddScoped<IImageStorageService, LocalImageStorageService>();
 
         // Typed HttpClient for Cloudflare Turnstile verification.
         services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();

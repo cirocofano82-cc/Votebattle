@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using VoteBattle.Api.Controllers;
 using VoteBattle.Api.Extensions;
 using VoteBattle.Api.Middleware;
@@ -191,6 +193,16 @@ else
 {
     app.UseHttpsRedirection();
 }
+
+// Serve uploaded images from the configured folder at /uploads (public, no auth).
+var storageOptions = app.Services.GetRequiredService<IOptions<StorageOptions>>().Value;
+var uploadsRoot = Path.GetFullPath(storageOptions.UploadsPath);
+Directory.CreateDirectory(uploadsRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/uploads"
+});
 
 app.UseRouting();
 app.UseCors(FrontendCorsPolicy);

@@ -42,3 +42,31 @@ export async function apiFetch(path, options = {}) {
 
   return data;
 }
+
+// Uploads an image file (multipart) and returns the served URL. Admin-only.
+export async function uploadImage(file) {
+  const form = new FormData();
+  form.append("file", file);
+
+  // Note: don't set Content-Type — the browser adds the multipart boundary.
+  const res = await fetch(`${API_BASE_URL}/uploads/image`, {
+    method: "POST",
+    body: form,
+    credentials: "include",
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    // no JSON body
+  }
+
+  if (!res.ok) {
+    const error = new Error(data?.message || `Upload failed (${res.status})`);
+    error.status = res.status;
+    throw error;
+  }
+
+  return data.data.url;
+}

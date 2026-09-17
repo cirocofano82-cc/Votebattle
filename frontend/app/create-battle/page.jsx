@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import ImageUploadField from "@/components/ImageUploadField";
 
 export default function CreateBattlePage() {
   const { user, loading: authLoading } = useAuth();
@@ -121,12 +122,20 @@ export default function CreateBattlePage() {
           <div className="card p-4 flex flex-col gap-3 border-t-4 !border-t-sidea">
             <div className="font-display text-xl text-sidea">Contender A</div>
             <input className="input" placeholder="Name" value={form.aName} onChange={set("aName")} required maxLength={200} />
-            <input className="input" placeholder="Image/logo URL (optional)" value={form.aImage} onChange={set("aImage")} />
+            <ImageUploadField
+              label="Contender A image"
+              value={form.aImage}
+              onChange={(v) => setForm((f) => ({ ...f, aImage: v }))}
+            />
           </div>
           <div className="card p-4 flex flex-col gap-3 border-t-4 !border-t-sideb">
             <div className="font-display text-xl text-sideb">Contender B</div>
             <input className="input" placeholder="Name" value={form.bName} onChange={set("bName")} required maxLength={200} />
-            <input className="input" placeholder="Image/logo URL (optional)" value={form.bImage} onChange={set("bImage")} />
+            <ImageUploadField
+              label="Contender B image"
+              value={form.bImage}
+              onChange={(v) => setForm((f) => ({ ...f, bImage: v }))}
+            />
           </div>
         </div>
 
