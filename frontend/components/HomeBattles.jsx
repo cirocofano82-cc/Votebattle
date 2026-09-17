@@ -19,8 +19,13 @@ function useTrending(initialBattles) {
     queryKey: ["home-trending"],
     queryFn: async () =>
       (await apiFetch("/battles?sort=trending&pageSize=7")).data?.items ?? [],
+    // Seed with the SSR result for an instant first paint / SEO, but treat it as
+    // stale so the client immediately refetches fresh data (e.g. newly uploaded
+    // images) instead of showing a cached snapshot.
     initialData: seed,
-    staleTime: 30_000,
+    initialDataUpdatedAt: 0,
+    staleTime: 0,
+    refetchOnMount: "always",
     retry: 3,
     retryDelay: 1500,
     // Keep polling while the API is unreachable; stop once a request succeeds.
