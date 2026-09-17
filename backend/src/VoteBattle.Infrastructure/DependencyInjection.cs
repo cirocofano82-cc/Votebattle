@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VoteBattle.Core.Interfaces;
@@ -21,8 +22,13 @@ public static class DependencyInjection
         // Database (PostgreSQL via EF Core).
         var connectionString = ResolveConnectionString(configuration);
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString, npgsql =>
-                npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+            options
+                .UseNpgsql(connectionString, npgsql =>
+                    npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+                // The soft-delete filter on Battle intentionally hides its required
+                // dependents (votes, participants, ...) along with it.
+                .ConfigureWarnings(w => w.Ignore(
+                    CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning)));
 
         // Options (bound from configuration / environment variables).
         services.Configure<AuthOptions>(o =>

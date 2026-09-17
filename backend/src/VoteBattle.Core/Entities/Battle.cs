@@ -42,6 +42,10 @@ public class Battle
     public string? MetaDescription { get; set; }
     public string? OgImageUrl { get; set; }
 
+    /// <summary>Soft-delete flag. Deleted battles are hidden from every query
+    /// via a global filter, but their rows (and vote history) are kept.</summary>
+    public bool IsDeleted { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 

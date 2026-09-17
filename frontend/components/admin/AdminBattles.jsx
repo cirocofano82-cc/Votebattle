@@ -27,7 +27,7 @@ export default function AdminBattles() {
   }
 
   async function remove(id, title) {
-    if (!window.confirm(`Delete "${title}"? This permanently removes the battle and its votes.`)) return;
+    if (!window.confirm(`Delete "${title}"? It will be hidden from the site (vote history is kept).`)) return;
     setBusy(id + "Delete");
     try {
       await apiFetch(`/admin/battles/${id}`, { method: "DELETE" });
@@ -68,7 +68,7 @@ export default function AdminBattles() {
                 {b.status === "Active" && (
                   <button className="btn btn-b" disabled={busy === b.id + "Suspend"} onClick={() => moderate(b.id, "Suspend")}>Suspend</button>
                 )}
-                {(b.status === "Suspended" || b.status === "Ended") && (
+                {(b.status === "Suspended" || b.status === "Ended" || b.status === "Rejected") && (
                   <button className="btn btn-ghost !text-sideb" disabled={busy === b.id + "Delete"} onClick={() => remove(b.id, b.title)}>Delete</button>
                 )}
               </div>

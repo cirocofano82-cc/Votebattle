@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using VoteBattle.Infrastructure.Data;
 using VoteBattle.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -129,8 +132,42 @@ public class BattleTests
         var delSuspended = await client.DeleteAsync($"/api/admin/battles/{id}");
         delSuspended.EnsureSuccessStatusCode();
 
-        // It is gone.
+        // It is hidden from the site...
         var get = await client.GetAsync($"/api/battles/{slug}");
         Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+
+        // ...but soft-deleted: the row is kept with IsDeleted = true.
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var row = await db.Battles.IgnoreQueryFilters()
+            .FirstAsync(b => b.Slug == slug);
+        Assert.True(row.IsDeleted);
+    }
+
+    [Fact]
+    public async Task Admin_can_delete_a_rejected_battle()
+    {
+        var client = _factory.CreateClient();
+        await client.LoginAsAdminAsync();
+
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var create = await client.PostAsJsonAsync("/api/battles", new
+        {
+            title = $"Rej{unique} vs Test{unique}",
+            categoryId = 1,
+            competitorA = new { name = "Rej" },
+            competitorB = new { name = "Test" }
+        });
+        create.EnsureSuccessStatusCode();
+        var slug = (await create.ReadDataAsync()).GetString();
+
+        var detail = await (await client.GetAsync($"/api/battles/{slug}")).ReadDataAsync();
+        var id = detail.GetProperty("id").GetString();
+
+        var reject = await client.PostAsJsonAsync($"/api/admin/battles/{id}/moderate", new { action = "Reject" });
+        reject.EnsureSuccessStatusCode();
+
+        var del = await client.DeleteAsync($"/api/admin/battles/{id}");
+        del.EnsureSuccessStatusCode();
     }
 }

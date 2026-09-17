@@ -77,27 +77,18 @@ public class AdminService : IAdminService
         if (battle is null)
             return Result.Failure(ErrorType.NotFound, "Battle not found.");
 
-        // Guard: only suspended or ended battles can be removed.
-        if (battle.Status is not (BattleStatus.Suspended or BattleStatus.Ended))
+        // Guard: only suspended, ended or rejected battles can be removed.
+        if (battle.Status is not (BattleStatus.Suspended or BattleStatus.Ended or BattleStatus.Rejected))
             return Result.Failure(ErrorType.Validation,
-                "Only suspended or ended battles can be deleted.");
+                "Only suspended, ended or rejected battles can be deleted.");
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        try
-        {
-            // Remove rows that block deletion (Restrict FKs) first; the battle's
-            // comments (and their likes) and views are removed by DB cascade.
-            // The credit ledger keeps its rows — the spends really happened.
-            await _db.Votes.Where(v => v.BattleId == battleId).ExecuteDeleteAsync(ct);
-            await _db.BattleParticipants.Where(p => p.BattleId == battleId).ExecuteDeleteAsync(ct);
-            await _db.Battles.Where(b => b.Id == battleId).ExecuteDeleteAsync(ct);
-            await tx.CommitAsync(ct);
-        }
-        catch
-        {
-            await tx.RollbackAsync(ct);
-            throw;
-        }
+        // Soft delete: the battle (and its vote history) is kept but hidden
+        // everywhere by the global query filter.
+        await _db.Battles
+            .Where(b => b.Id == battleId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(b => b.IsDeleted, true)
+                .SetProperty(b => b.UpdatedAt, DateTimeOffset.UtcNow), ct);
 
         await _audit.LogAsync(AuditEventType.BattleDeleted, adminId, ipAddress,
             new { battleId, title = battle.Title }, ct);

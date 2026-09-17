@@ -24,6 +24,10 @@ public class BattleConfiguration : IEntityTypeConfiguration<Battle>
 
         builder.HasIndex(b => b.Slug).IsUnique();
         builder.HasIndex(b => b.Status);
+        builder.HasIndex(b => b.IsDeleted);
+
+        // Soft-deleted battles are hidden from every query automatically.
+        builder.HasQueryFilter(b => !b.IsDeleted);
         builder.HasIndex(b => b.CategoryId);
         builder.HasIndex(b => b.CreatedAt);
         builder.HasIndex(b => b.TotalVotes);
