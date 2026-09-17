@@ -10,7 +10,7 @@ public interface IBattleService
     Task<BattleDetailDto?> GetBattleBySlugAsync(string slug, CancellationToken ct = default);
 
     /// <summary>Creates a battle in PENDING_MODERATION status. Returns the new slug.</summary>
-    Task<Result<string>> CreateBattleAsync(Guid userId, CreateBattleRequest request, CancellationToken ct = default);
+    Task<Result<string>> CreateBattleAsync(Guid userId, CreateBattleRequest request, bool isAdmin = false, CancellationToken ct = default);
 
     /// <summary>Returns a battle for editing (owner or admin only), regardless of status.</summary>
     Task<Result<BattleDetailDto>> GetForEditAsync(Guid battleId, Guid userId, bool isAdmin, CancellationToken ct = default);

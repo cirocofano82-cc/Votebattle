@@ -74,7 +74,7 @@ public class BattleTests
     }
 
     [Fact]
-    public async Task Created_battle_is_pending_and_not_public()
+    public async Task Admin_created_battle_is_live_immediately()
     {
         var client = _factory.CreateClient();
         await client.LoginAsAdminAsync();
@@ -91,8 +91,10 @@ public class BattleTests
         create.EnsureSuccessStatusCode();
         var slug = (await create.ReadDataAsync()).GetString();
 
-        // Pending battles are not publicly retrievable.
+        // Admin battles go live immediately, so they are publicly retrievable.
         var get = await client.GetAsync($"/api/battles/{slug}");
-        Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, get.StatusCode);
+        var data = await get.ReadDataAsync();
+        Assert.Equal("Active", data.GetProperty("status").GetString());
     }
 }

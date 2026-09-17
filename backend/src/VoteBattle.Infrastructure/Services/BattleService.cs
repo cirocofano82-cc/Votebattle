@@ -89,7 +89,7 @@ public class BattleService : IBattleService
         return MapDetail(battle);
     }
 
-    public async Task<Result<string>> CreateBattleAsync(Guid userId, CreateBattleRequest request, CancellationToken ct = default)
+    public async Task<Result<string>> CreateBattleAsync(Guid userId, CreateBattleRequest request, bool isAdmin = false, CancellationToken ct = default)
     {
         var categoryExists = await _db.Categories.AnyAsync(c => c.Id == request.CategoryId && c.IsActive, ct);
         if (!categoryExists)
@@ -108,7 +108,8 @@ public class BattleService : IBattleService
             Description = request.Description?.Trim(),
             CategoryId = request.CategoryId,
             CreatedByUserId = userId,
-            Status = BattleStatus.PendingModeration, // never public automatically
+            // Admin-created battles go live immediately; anything else waits for moderation.
+            Status = isAdmin ? BattleStatus.Active : BattleStatus.PendingModeration,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             CreatedAt = now,
@@ -135,7 +136,9 @@ public class BattleService : IBattleService
         _db.Battles.Add(battle);
         await _db.SaveChangesAsync(ct);
 
-        return Result<string>.Success(slug, "Battle submitted and is pending moderation.");
+        return Result<string>.Success(slug, isAdmin
+            ? "Battle created and is now live."
+            : "Battle submitted and is pending moderation.");
     }
 
     public async Task<Result<BattleDetailDto>> GetForEditAsync(Guid battleId, Guid userId, bool isAdmin, CancellationToken ct = default)

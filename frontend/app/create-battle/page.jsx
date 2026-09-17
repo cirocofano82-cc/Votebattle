@@ -45,7 +45,7 @@ export default function CreateBattlePage() {
           competitorB: { name: form.bName, imageUrl: form.bImage || null },
         },
       });
-      setDone(res.message || "Battle submitted and is pending moderation.");
+      setDone({ message: res.message || "Battle created.", slug: res.data });
     } catch (err) {
       setError(err.message || "Could not create the battle.");
       setErrors(err.body?.errors || []);
@@ -80,10 +80,13 @@ export default function CreateBattlePage() {
   if (done) {
     return (
       <div className="container-page py-12 max-w-[560px] mx-auto text-center">
-        <h1 className="font-display text-4xl mb-2">Submitted! 🎉</h1>
-        <p className="text-muted mb-5">{done} It will appear once an admin approves it.</p>
+        <h1 className="font-display text-4xl mb-2">Battle created! 🎉</h1>
+        <p className="text-muted mb-5">{done.message}</p>
         <div className="flex gap-3 justify-center">
-          <Link href="/battles" className="btn btn-ink">Browse battles</Link>
+          {done.slug && (
+            <Link href={`/battle/${done.slug}`} className="btn btn-ink">View battle</Link>
+          )}
+          <Link href="/battles" className="btn btn-ghost">Browse battles</Link>
           <button className="btn btn-ghost" onClick={() => { setDone(null); setForm({ title: "", categoryId: "", description: "", aName: "", aImage: "", bName: "", bImage: "" }); }}>
             Create another
           </button>
@@ -95,7 +98,7 @@ export default function CreateBattlePage() {
   return (
     <div className="container-page py-8 max-w-[680px] mx-auto">
       <h1 className="font-display text-4xl mb-1">Create a Battle</h1>
-      <p className="text-muted mb-6">Pit two contenders head-to-head. Battles are reviewed before going live.</p>
+      <p className="text-muted mb-6">Pit two contenders head-to-head. As an admin, your battle goes live immediately.</p>
 
       <form onSubmit={submit} className="flex flex-col gap-4">
         <div>
@@ -135,7 +138,7 @@ export default function CreateBattlePage() {
         )}
 
         <button className="btn btn-ink" disabled={loading}>
-          {loading ? "Submitting…" : "Submit battle for review"}
+          {loading ? "Creating…" : "Create battle"}
         </button>
       </form>
     </div>

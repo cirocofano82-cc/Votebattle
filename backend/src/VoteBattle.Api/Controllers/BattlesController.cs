@@ -54,7 +54,7 @@ public class BattlesController : ApiControllerBase
         if (userId is null)
             return Unauthorized(ApiResponse.Fail("Not authenticated."));
 
-        var result = await _battleService.CreateBattleAsync(userId.Value, request, ct);
+        var result = await _battleService.CreateBattleAsync(userId.Value, request, IsAdmin, ct);
         return FromResult(result);
     }
 
