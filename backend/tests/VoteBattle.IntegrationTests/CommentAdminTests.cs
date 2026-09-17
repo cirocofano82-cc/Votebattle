@@ -59,6 +59,41 @@ public class CommentAdminTests
     }
 
     [Fact]
+    public async Task Admin_can_delete_a_comment()
+    {
+        // A user posts a comment.
+        var userClient = _factory.CreateClient();
+        await userClient.RegisterVerifyLoginAsync(_factory);
+        var (battleId, _) = await userClient.GetFirstBattleAsync();
+
+        var post = await userClient.PostAsJsonAsync($"/api/battles/{battleId}/comments",
+            new { content = "A comment an admin will remove." });
+        post.EnsureSuccessStatusCode();
+        var commentId = (await post.ReadDataAsync()).GetProperty("id").GetString();
+
+        // An admin deletes it.
+        var adminClient = _factory.CreateClient();
+        await adminClient.LoginAsAdminAsync();
+        var del = await adminClient.DeleteAsync($"/api/admin/comments/{commentId}");
+        del.EnsureSuccessStatusCode();
+
+        // It no longer appears in the battle's comments.
+        var list = await (await userClient.GetAsync($"/api/battles/{battleId}/comments")).ReadDataAsync();
+        foreach (var c in list.GetProperty("items").EnumerateArray())
+            Assert.NotEqual(commentId, c.GetProperty("id").GetString());
+    }
+
+    [Fact]
+    public async Task Non_admin_cannot_delete_a_comment()
+    {
+        var client = _factory.CreateClient();
+        await client.RegisterVerifyLoginAsync(_factory);
+
+        var resp = await client.DeleteAsync($"/api/admin/comments/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.Forbidden, resp.StatusCode);
+    }
+
+    [Fact]
     public async Task Admin_can_access_admin_endpoints()
     {
         var client = _factory.CreateClient();

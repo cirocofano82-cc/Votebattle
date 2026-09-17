@@ -20,6 +20,9 @@ export default function Comments({ battleId }) {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState(null);
   const [reportFor, setReportFor] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const isAdmin = user?.roles?.includes("Admin");
 
   const load = useCallback(
     async (pageToLoad) => {
@@ -84,6 +87,20 @@ export default function Comments({ battleId }) {
     }
   }
 
+  async function removeComment(comment) {
+    if (!window.confirm("Delete this comment? This can't be undone.")) return;
+    setDeletingId(comment.id);
+    try {
+      await apiFetch(`/admin/comments/${comment.id}`, { method: "DELETE" });
+      setItems((prev) => prev.filter((c) => c.id !== comment.id));
+      setTotal((t) => Math.max(0, t - 1));
+    } catch {
+      // ignore; the comment stays in the list
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const hasMore = items.length < total;
 
   return (
@@ -139,6 +156,15 @@ export default function Comments({ battleId }) {
                 {user && (
                   <button className="hover:text-text" onClick={() => setReportFor(c)}>
                     Report
+                  </button>
+                )}
+                {isAdmin && (
+                  <button
+                    className="hover:text-sideb disabled:opacity-50"
+                    disabled={deletingId === c.id}
+                    onClick={() => removeComment(c)}
+                  >
+                    {deletingId === c.id ? "Deleting…" : "Delete"}
                   </button>
                 )}
               </div>
