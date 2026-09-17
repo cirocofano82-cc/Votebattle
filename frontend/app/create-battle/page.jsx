@@ -64,6 +64,19 @@ export default function CreateBattlePage() {
     );
   }
 
+  // Battle creation is currently restricted to admins.
+  if (!authLoading && user && !user.roles?.includes("Admin")) {
+    return (
+      <div className="container-page py-12 text-center">
+        <h1 className="font-display text-4xl mb-2">Battle creation is closed</h1>
+        <p className="text-muted mb-5">
+          New battles aren&apos;t open to players right now. Explore the ones already live.
+        </p>
+        <Link href="/battles" className="btn btn-ink">Browse battles</Link>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="container-page py-12 max-w-[560px] mx-auto text-center">

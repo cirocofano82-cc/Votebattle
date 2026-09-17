@@ -58,10 +58,26 @@ public class BattleTests
     }
 
     [Fact]
-    public async Task Created_battle_is_pending_and_not_public()
+    public async Task Regular_user_cannot_create_battle()
     {
         var client = _factory.CreateClient();
         await client.RegisterVerifyLoginAsync(_factory);
+
+        var resp = await client.PostAsJsonAsync("/api/battles", new
+        {
+            title = "Player vs Player battle",
+            categoryId = 1,
+            competitorA = new { name = "A" },
+            competitorB = new { name = "B" }
+        });
+        Assert.Equal(HttpStatusCode.Forbidden, resp.StatusCode); // 403: admin-only
+    }
+
+    [Fact]
+    public async Task Created_battle_is_pending_and_not_public()
+    {
+        var client = _factory.CreateClient();
+        await client.LoginAsAdminAsync();
 
         var unique = Guid.NewGuid().ToString("N")[..8];
         var title = $"Alpha{unique} vs Beta{unique}";

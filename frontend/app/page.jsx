@@ -39,7 +39,6 @@ export default async function Home() {
             </p>
             <div className="flex gap-3 mt-6 flex-wrap">
               <Link href="/battles" className="btn btn-ink">Explore Battles →</Link>
-              <Link href="/create-battle" className="btn btn-ghost">Create a Battle</Link>
             </div>
           </div>
 

@@ -16,7 +16,9 @@ export default function Navbar() {
 
         <nav className="hidden sm:flex gap-6 text-sm font-medium text-muted ml-2">
           <Link href="/battles" className="no-underline hover:text-text">Battles</Link>
-          <Link href="/create-battle" className="no-underline hover:text-text">Create</Link>
+          {user?.roles?.includes("Admin") && (
+            <Link href="/create-battle" className="no-underline hover:text-text">Create</Link>
+          )}
           <Link href="/credits" className="no-underline hover:text-text">Get Credits</Link>
         </nav>
 

@@ -31,6 +31,14 @@ public static class TestHelpers
         return new TestUser(userId, email, password);
     }
 
+    /// <summary>Logs in as the seeded admin. The returned client carries the auth cookie.</summary>
+    public static async Task LoginAsAdminAsync(this HttpClient client)
+    {
+        var login = await client.PostAsJsonAsync("/api/auth/login",
+            new { email = "admin@votebattle.local", password = "Admin123!" });
+        login.EnsureSuccessStatusCode();
+    }
+
     /// <summary>Returns the "data" element of an ApiResponse body.</summary>
     public static async Task<JsonElement> ReadDataAsync(this HttpResponseMessage response)
     {

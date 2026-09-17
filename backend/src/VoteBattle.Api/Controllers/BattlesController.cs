@@ -44,9 +44,10 @@ public class BattlesController : ApiControllerBase
         return Ok(ApiResponse<BattleDetailDto>.Ok(battle));
     }
 
-    /// <summary>Creates a battle. It starts in PENDING_MODERATION and is not public.</summary>
+    /// <summary>Creates a battle. It starts in PENDING_MODERATION and is not public.
+    /// Restricted to admins for now — user-submitted battles are disabled.</summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateBattleRequest request, CancellationToken ct)
     {
         var userId = CurrentUserId;
