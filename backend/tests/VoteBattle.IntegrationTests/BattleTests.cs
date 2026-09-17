@@ -97,4 +97,40 @@ public class BattleTests
         var data = await get.ReadDataAsync();
         Assert.Equal("Active", data.GetProperty("status").GetString());
     }
+
+    [Fact]
+    public async Task Admin_can_delete_a_suspended_battle_but_not_an_active_one()
+    {
+        var client = _factory.CreateClient();
+        await client.LoginAsAdminAsync();
+
+        var unique = Guid.NewGuid().ToString("N")[..8];
+        var create = await client.PostAsJsonAsync("/api/battles", new
+        {
+            title = $"Del{unique} vs Test{unique}",
+            categoryId = 1,
+            competitorA = new { name = "Del" },
+            competitorB = new { name = "Test" }
+        });
+        create.EnsureSuccessStatusCode();
+        var slug = (await create.ReadDataAsync()).GetString();
+
+        var detail = await (await client.GetAsync($"/api/battles/{slug}")).ReadDataAsync();
+        var id = detail.GetProperty("id").GetString();
+
+        // Active battles cannot be deleted.
+        var delActive = await client.DeleteAsync($"/api/admin/battles/{id}");
+        Assert.Equal(HttpStatusCode.BadRequest, delActive.StatusCode);
+
+        // Suspend it, then deletion succeeds.
+        var suspend = await client.PostAsJsonAsync($"/api/admin/battles/{id}/moderate", new { action = "Suspend" });
+        suspend.EnsureSuccessStatusCode();
+
+        var delSuspended = await client.DeleteAsync($"/api/admin/battles/{id}");
+        delSuspended.EnsureSuccessStatusCode();
+
+        // It is gone.
+        var get = await client.GetAsync($"/api/battles/{slug}");
+        Assert.Equal(HttpStatusCode.NotFound, get.StatusCode);
+    }
 }

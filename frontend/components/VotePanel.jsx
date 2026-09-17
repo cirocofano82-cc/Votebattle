@@ -12,7 +12,7 @@ import { formatNumber, formatPercent } from "@/lib/format";
 export default function VotePanel({ battle }) {
   const { user, loading: authLoading, refresh } = useAuth();
 
-  const MAX_PER_VOTE = 100;
+  const MAX_PER_VOTE = 1000;
   const initial = [...(battle.participants || [])].sort((a, b) => a.position - b.position);
   const [participants, setParticipants] = useState(initial);
   const [totalVotes, setTotalVotes] = useState(battle.totalVotes);

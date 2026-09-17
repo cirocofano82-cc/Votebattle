@@ -10,7 +10,7 @@ namespace VoteBattle.Core.DTOs.Votes;
 public class CreateVoteRequest
 {
     /// <summary>Upper bound on how many votes can be cast in a single request.</summary>
-    public const int MaxQuantity = 100;
+    public const int MaxQuantity = 1000;
 
     [Required]
     public Guid BattleId { get; set; }
@@ -19,6 +19,6 @@ public class CreateVoteRequest
     public Guid BattleParticipantId { get; set; }
 
     /// <summary>How many votes to cast at once. Each vote spends 1 Vote Credit.</summary>
-    [Range(1, MaxQuantity, ErrorMessage = "You can cast between 1 and 100 votes at a time.")]
+    [Range(1, MaxQuantity, ErrorMessage = "You can cast between 1 and 1000 votes at a time.")]
     public int Quantity { get; set; } = 1;
 }

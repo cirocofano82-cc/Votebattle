@@ -7,6 +7,7 @@ public interface IAdminService
 {
     Task<PagedResult<AdminBattleDto>> GetBattlesAsync(string? status, int page, int pageSize, CancellationToken ct = default);
     Task<Result> ModerateBattleAsync(Guid battleId, ModerateBattleRequest request, Guid adminId, CancellationToken ct = default);
+    Task<Result> DeleteBattleAsync(Guid battleId, Guid adminId, string? ipAddress, CancellationToken ct = default);
 
     Task<Result> DeleteCommentAsync(Guid commentId, CancellationToken ct = default);
 

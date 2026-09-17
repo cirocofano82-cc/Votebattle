@@ -70,6 +70,41 @@ public class AdminService : IAdminService
         return Result.Success($"Battle {request.Action.ToString().ToLowerInvariant()}d.");
     }
 
+    public async Task<Result> DeleteBattleAsync(Guid battleId, Guid adminId, string? ipAddress, CancellationToken ct = default)
+    {
+        var battle = await _db.Battles.AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == battleId, ct);
+        if (battle is null)
+            return Result.Failure(ErrorType.NotFound, "Battle not found.");
+
+        // Guard: only suspended or ended battles can be removed.
+        if (battle.Status is not (BattleStatus.Suspended or BattleStatus.Ended))
+            return Result.Failure(ErrorType.Validation,
+                "Only suspended or ended battles can be deleted.");
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            // Remove rows that block deletion (Restrict FKs) first; the battle's
+            // comments (and their likes) and views are removed by DB cascade.
+            // The credit ledger keeps its rows — the spends really happened.
+            await _db.Votes.Where(v => v.BattleId == battleId).ExecuteDeleteAsync(ct);
+            await _db.BattleParticipants.Where(p => p.BattleId == battleId).ExecuteDeleteAsync(ct);
+            await _db.Battles.Where(b => b.Id == battleId).ExecuteDeleteAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+        catch
+        {
+            await tx.RollbackAsync(ct);
+            throw;
+        }
+
+        await _audit.LogAsync(AuditEventType.BattleDeleted, adminId, ipAddress,
+            new { battleId, title = battle.Title }, ct);
+
+        return Result.Success("Battle deleted.");
+    }
+
     // --- Comments ---------------------------------------------------------
 
     public async Task<Result> DeleteCommentAsync(Guid commentId, CancellationToken ct = default)

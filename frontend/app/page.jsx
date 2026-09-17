@@ -29,8 +29,8 @@ export default async function Home() {
               <span className="text-sideb">DE</span>.
             </h1>
             <p className="text-muted text-lg mt-4 max-w-[52ch]">
-              Put two contenders head-to-head and back the one you believe in — one Vote
-              Credit at a time. New players get <strong>5 free credits</strong>.
+              Put two contenders head-to-head and back the one you believe in — cast as
+              many Vote Credits as you want. New players get <strong>5 free credits</strong>.
             </p>
             <div className="flex gap-3 mt-6 flex-wrap">
               <Link href="/battles" className="btn btn-ink">Explore Battles →</Link>

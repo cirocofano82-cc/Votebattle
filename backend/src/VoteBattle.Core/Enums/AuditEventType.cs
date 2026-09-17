@@ -17,5 +17,6 @@ public enum AuditEventType
     PaymentFailed = 8,
     PaymentRefunded = 9,
     StripeWebhookProcessed = 10,
-    StripeWebhookDuplicate = 11
+    StripeWebhookDuplicate = 11,
+    BattleDeleted = 12
 }

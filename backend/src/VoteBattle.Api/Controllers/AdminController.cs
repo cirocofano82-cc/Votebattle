@@ -32,6 +32,13 @@ public class AdminController : ApiControllerBase
         return FromResult(result);
     }
 
+    [HttpDelete("battles/{id:guid}")]
+    public async Task<IActionResult> DeleteBattle(Guid id, CancellationToken ct)
+    {
+        var result = await _admin.DeleteBattleAsync(id, CurrentUserId ?? Guid.Empty, ClientIp, ct);
+        return FromResult(result);
+    }
+
     // Comments
     [HttpDelete("comments/{id:guid}")]
     public async Task<IActionResult> DeleteComment(Guid id, CancellationToken ct)
