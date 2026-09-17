@@ -182,13 +182,15 @@ public static class DataSeeder
                 TotalAmountSpent = totalVotes, // nominal $1 per vote
                 ViewCount = totalVotes * 4,
                 MetaDescription = def.Description,
-                OgImageUrl = ImageUrl(def.NameA + " vs " + def.NameB),
+                OgImageUrl = null,
                 CreatedAt = now.AddDays(-30),
                 UpdatedAt = now,
                 Participants = new List<BattleParticipant>
                 {
-                    new() { Name = def.NameA, Position = 1, VoteCount = def.VotesA, ImageUrl = LogoUrl(def.NameA), Description = def.NameA },
-                    new() { Name = def.NameB, Position = 2, VoteCount = def.VotesB, ImageUrl = LogoUrl(def.NameB), Description = def.NameB }
+                    // No external image: the UI shows a clean colored initial, which
+                    // renders reliably even on networks that block image hosts.
+                    new() { Name = def.NameA, Position = 1, VoteCount = def.VotesA, ImageUrl = null, Description = def.NameA },
+                    new() { Name = def.NameB, Position = 2, VoteCount = def.VotesB, ImageUrl = null, Description = def.NameB }
                 }
             };
 
@@ -197,9 +199,9 @@ public static class DataSeeder
 
         await db.SaveChangesAsync(ct);
 
-        // Backfill coherent brand logos onto the demo battles that still carry the
-        // old placeholder image. Admin-edited images (any non-placeholder URL) are
-        // left untouched, and once updated this pass is a no-op.
+        // Clear any auto-generated demo image (old gray placeholder or brand logo)
+        // so those contenders fall back to the colored initial. Admin-edited images
+        // are left untouched, and once cleared this pass is a no-op.
         foreach (var def in definitions)
         {
             var slug = SlugGenerator.Generate(def.Title);
@@ -209,47 +211,14 @@ public static class DataSeeder
 
             foreach (var p in participants)
             {
-                if (p.ImageUrl is null || p.ImageUrl.Contains("placehold.co"))
-                    p.ImageUrl = LogoUrl(p.Name);
+                if (p.ImageUrl is not null &&
+                    (p.ImageUrl.Contains("placehold.co") || p.ImageUrl.Contains("logo.clearbit.com")))
+                    p.ImageUrl = null;
             }
         }
 
         await db.SaveChangesAsync(ct);
     }
-
-    private static string ImageUrl(string text) =>
-        $"https://placehold.co/600x400?text={Uri.EscapeDataString(text)}";
-
-    // Full-color brand logos for the demo contenders. Clearbit serves a square
-    // logo per domain; the UI falls back to a colored initial if a logo fails.
-    private static readonly Dictionary<string, string> LogoDomains = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Samsung Galaxy Fold 8"] = "samsung.com",
-        ["iPhone Duo"] = "apple.com",
-        ["PS5"] = "playstation.com",
-        ["Xbox Series X"] = "xbox.com",
-        ["Tesla Model 3"] = "tesla.com",
-        ["BMW i4"] = "bmw.com",
-        ["Netflix"] = "netflix.com",
-        ["Disney+"] = "disneyplus.com",
-        ["Spotify"] = "spotify.com",
-        ["Apple Music"] = "apple.com",
-        ["Nike"] = "nike.com",
-        ["Adidas"] = "adidas.com",
-        ["MacBook Pro"] = "apple.com",
-        ["Dell XPS"] = "dell.com",
-        ["Google Pixel"] = "google.com",
-        ["iPhone"] = "apple.com",
-        ["ChatGPT"] = "openai.com",
-        ["Gemini"] = "google.com",
-        ["Coca-Cola"] = "coca-cola.com",
-        ["Pepsi"] = "pepsi.com",
-    };
-
-    private static string LogoUrl(string name) =>
-        LogoDomains.TryGetValue(name, out var domain)
-            ? $"https://logo.clearbit.com/{domain}"
-            : ImageUrl(name);
 
     private sealed record BattleSeed(
         string Title, string CategorySlug, string Description,

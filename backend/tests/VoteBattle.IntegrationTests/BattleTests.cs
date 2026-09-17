@@ -145,7 +145,7 @@ public class BattleTests
     }
 
     [Fact]
-    public async Task Seeded_battles_have_real_contender_images()
+    public async Task Seeded_battles_have_no_auto_generated_placeholder_images()
     {
         var client = _factory.CreateClient();
         var detail = await (await client.GetAsync("/api/battles/chatgpt-vs-gemini")).ReadDataAsync();
@@ -153,8 +153,13 @@ public class BattleTests
         foreach (var p in detail.GetProperty("participants").EnumerateArray())
         {
             var img = p.GetProperty("imageUrl").GetString();
-            Assert.False(string.IsNullOrWhiteSpace(img));
-            Assert.DoesNotContain("placehold.co", img); // coherent logo, not a placeholder
+            // Demo contenders use the colored-initial fallback, not an external
+            // placeholder or logo host that a network might block.
+            if (!string.IsNullOrEmpty(img))
+            {
+                Assert.DoesNotContain("placehold.co", img);
+                Assert.DoesNotContain("logo.clearbit.com", img);
+            }
         }
     }
 
