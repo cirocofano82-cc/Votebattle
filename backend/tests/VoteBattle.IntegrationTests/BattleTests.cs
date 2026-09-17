@@ -145,6 +145,20 @@ public class BattleTests
     }
 
     [Fact]
+    public async Task Seeded_battles_have_real_contender_images()
+    {
+        var client = _factory.CreateClient();
+        var detail = await (await client.GetAsync("/api/battles/chatgpt-vs-gemini")).ReadDataAsync();
+
+        foreach (var p in detail.GetProperty("participants").EnumerateArray())
+        {
+            var img = p.GetProperty("imageUrl").GetString();
+            Assert.False(string.IsNullOrWhiteSpace(img));
+            Assert.DoesNotContain("placehold.co", img); // coherent logo, not a placeholder
+        }
+    }
+
+    [Fact]
     public async Task Admin_can_delete_a_rejected_battle()
     {
         var client = _factory.CreateClient();
