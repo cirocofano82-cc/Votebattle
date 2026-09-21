@@ -3,35 +3,33 @@
 @tailwind utilities;
 
 /* ===========================================================================
-   VoteBattle — "Clash" theme. A committed dark, neon arena look: deep navy
-   ground, electric-blue side A vs hot-red side B, gold Vote Credits.
+   VoteBattle — "Playful" theme. A bright, vibrant, chunky look: soft gradient
+   mesh ground, blue side A vs pink side B, violet primary, sunny gold credits.
+   Committed light.
    =========================================================================== */
 :root {
-  --bg: #070a12;
-  --surface: #0f1622;
-  --surface-2: #18212f;
-  --text: #e9eefb;
-  --muted: #8a97ad;
-  --line: #212d40;
-  --line-strong: #2e3c54;
-  --a: #4f8bff;
-  --a-soft: #14224a;
-  --b: #ff566f;
-  --b-soft: #3a1522;
-  --gold: #ffce54;
-  --gold-ink: #ffce54;
-  --gold-soft: #2b2512;
-  --ink: #eef2fb;
-  --on-ink: #0a0f1a;
-  color-scheme: dark;
+  --bg: #fbfaff;
+  --surface: #ffffff;
+  --surface-2: #f2effb;
+  --text: #181425;
+  --muted: #6f6786;
+  --line: #ece6fa;
+  --line-strong: #ddd4f2;
+  --a: #4f7bf7;
+  --a-soft: #e4ecff;
+  --b: #ff5c8a;
+  --b-soft: #ffe2ec;
+  --gold: #ffc53d;
+  --gold-ink: #a9730a;
+  --gold-soft: #fff2cc;
+  --ink: #181425;
+  --on-ink: #ffffff;
+  color-scheme: light;
 }
 
-/* Clash is a single, committed visual world — keep it dark in every theme
-   state so the identity holds regardless of OS or an explicit toggle. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    color-scheme: dark;
-  }
+/* Playful is a committed light world — keep it light in every theme state. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: light; }
 }
 
 html, body {
@@ -41,134 +39,64 @@ html, body {
 
 body {
   background:
-    radial-gradient(1100px 480px at 85% -8%, rgba(79, 139, 255, .16), transparent 60%),
-    radial-gradient(950px 460px at 6% -6%, rgba(255, 86, 111, .13), transparent 58%),
+    radial-gradient(720px 320px at 86% -8%, #e6ddff, transparent 60%),
+    radial-gradient(620px 300px at 3% 2%, #ffdbe9, transparent 58%),
+    radial-gradient(700px 360px at 50% 120%, #d9ecff, transparent 62%),
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 
-.tnum {
-  font-variant-numeric: tabular-nums;
-}
+.tnum { font-variant-numeric: tabular-nums; }
 
 @layer components {
   .container-page { @apply max-w-[1120px] mx-auto px-5; }
   .chip { @apply inline-flex items-center gap-1 text-[11px] font-bold tracking-wide uppercase text-muted bg-surface2 rounded-full px-2.5 py-1; }
-  .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-[10px] px-4 py-2 border border-transparent cursor-pointer no-underline transition; }
+  .btn { @apply inline-flex items-center justify-center gap-2 font-bold text-sm rounded-full px-5 py-2.5 border border-transparent cursor-pointer no-underline transition; }
   .btn:disabled { @apply opacity-60 cursor-not-allowed; }
-  .btn-ink { @apply bg-ink text-onink; }
-  .btn-ghost { @apply bg-transparent border-line-strong text-text hover:bg-surface2; }
-  .btn-a { @apply bg-sidea text-white; }
-  .btn-b { @apply bg-sideb text-white; }
-  .btn-gold { @apply bg-gold text-[#1a1200]; }
-  .input { @apply w-full bg-surface border border-line-strong rounded-[10px] px-3 py-2 text-text outline-none focus:border-sidea; }
+  .btn-ink { @apply text-white; }
+  .btn-ghost { @apply bg-surface border-line-strong text-text hover:bg-surface2; }
+  .btn-a { @apply text-white; }
+  .btn-b { @apply text-white; }
+  .btn-gold { @apply text-[#5a3d06]; }
+  .input { @apply w-full bg-surface border border-line-strong rounded-[14px] px-3.5 py-2.5 text-text outline-none focus:border-sidea; }
   .label { @apply block text-sm font-semibold mb-1; }
   .card { @apply bg-surface border border-line rounded-card shadow-card; }
 }
 
-/* Neon glow on the action buttons — the vote buttons should feel electric. */
-.btn-a { box-shadow: 0 12px 30px -14px rgba(79, 139, 255, .9); }
-.btn-b { box-shadow: 0 12px 30px -14px rgba(255, 86, 111, .9); }
-.btn-gold { box-shadow: 0 12px 30px -14px rgba(255, 206, 84, .8); }
+/* Vibrant gradient buttons with soft colored glows (unlayered → win over @apply). */
+.btn-ink { background: linear-gradient(120deg, #5b7bff, #8b5cf6); box-shadow: 0 12px 26px -12px rgba(120, 90, 240, .6); }
+.btn-a { background: linear-gradient(120deg, #5b8bff, #3b5bdb); box-shadow: 0 12px 26px -12px rgba(79, 123, 247, .7); }
+.btn-b { background: linear-gradient(120deg, #ff7aa2, #ff5c8a); box-shadow: 0 12px 26px -12px rgba(255, 92, 138, .7); }
+.btn-gold { background: linear-gradient(120deg, #ffd874, #f4b02e); box-shadow: 0 12px 26px -12px rgba(244, 176, 46, .6); }
 @media (prefers-reduced-motion: no-preference) {
-  .btn-a:hover, .btn-b:hover, .btn-gold:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .btn-ink:hover, .btn-a:hover, .btn-b:hover, .btn-gold:hover { filter: brightness(1.05); transform: translateY(-1px); }
 }
 
-/* Split bar for versus results — with a soft neon bleed on each side. */
+/* Chunky versus bar. */
 .vs-bar {
-  height: 14px;
+  height: 12px;
   border-radius: 999px;
   overflow: hidden;
   display: flex;
   background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
 }
-.vs-bar .fa { background: linear-gradient(90deg, #3b74ff, var(--a)); height: 100%; box-shadow: 0 0 16px rgba(79, 139, 255, .55); }
-.vs-bar .fb { background: linear-gradient(90deg, var(--b), #ff3d5f); height: 100%; box-shadow: 0 0 16px rgba(255, 86, 111, .55); }
+.vs-bar .fa { background: linear-gradient(90deg, #5b8bff, var(--a)); height: 100%; }
+.vs-bar .fb { background: linear-gradient(90deg, var(--b), #ff7aa2); height: 100%; }
 @media (prefers-reduced-motion: no-preference) {
   .vs-bar .fa, .vs-bar .fb { transition: width .5s cubic-bezier(.4, 0, .2, 1); }
 }
 
-/* Pulsing "live" dot used in the arena. */
+/* Pulsing live dot. */
 .live-dot {
   width: 8px; height: 8px; border-radius: 50%; background: var(--b);
-  box-shadow: 0 0 0 0 rgba(255, 86, 111, .7);
+  box-shadow: 0 0 0 0 rgba(255, 92, 138, .6);
 }
 @media (prefers-reduced-motion: no-preference) {
   .live-dot { animation: livepulse 1.7s infinite; }
 }
 @keyframes livepulse {
-  70% { box-shadow: 0 0 0 8px rgba(255, 86, 111, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 86, 111, 0); }
-}
-
-/* ===========================================================================
-   Clash arena — full-bleed diagonal split duel (battle page vote panel).
-   =========================================================================== */
-.arena {
-  position: relative;
-  min-height: 420px;
-  overflow: hidden;
-  color: #fff;
-  background: #05070e;
-  font-family: "Anton", "Arial Narrow", system-ui, sans-serif;
-}
-.arena .halfA {
-  position: absolute; inset: 0;
-  clip-path: polygon(0 0, 59% 0, 43% 100%, 0 100%);
-  background: radial-gradient(120% 120% at 20% 30%, #2f5fe0, #0a1a4a 70%, #050a1e);
-}
-.arena .halfB {
-  position: absolute; inset: 0;
-  clip-path: polygon(59% 0, 100% 0, 100% 100%, 43% 100%);
-  background: radial-gradient(120% 120% at 82% 70%, #ff3d63, #7c0f2c 70%, #3a0715);
-}
-.arena .seam {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, #dfe9ff, #fff, #ffd9e2);
-  clip-path: polygon(58.2% 0, 60% 0, 44% 100%, 42.2% 100%);
-  filter: drop-shadow(0 0 10px rgba(150, 190, 255, .85));
-  opacity: .9;
-}
-.arena .a-top {
-  position: absolute; top: 16px; left: 0; right: 0; padding: 0 20px;
-  display: flex; justify-content: space-between; align-items: center;
-  font-family: "Instrument Sans", system-ui, sans-serif;
-  font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; z-index: 3;
-}
-.arena .a-round { color: rgba(255, 255, 255, .72); }
-.arena .a-live { display: inline-flex; align-items: center; gap: 7px; color: #fff; }
-.arena .a-score { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); text-align: center; z-index: 3; }
-.arena .a-vs { font-size: clamp(28px, 6vw, 52px); letter-spacing: .06em; text-shadow: 0 4px 30px rgba(0, 0, 0, .5); }
-.arena .a-tally { font-size: clamp(40px, 9vw, 80px); line-height: .85; margin-top: 2px; font-variant-numeric: tabular-nums; }
-.arena .a-tally b { color: #8fbcff; }
-.arena .a-tally i { font-style: normal; color: #ff8098; }
-.arena .a-tally s { color: #5a6b8c; text-decoration: none; padding: 0 8px; }
-.arena .a-cast {
-  margin-top: 8px; display: inline-block; font-family: "Instrument Sans", sans-serif;
-  font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-  color: #cdd7ea; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18);
-  border-radius: 999px; padding: 5px 12px;
-}
-.arena .fighter { position: absolute; bottom: 108px; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2; }
-.arena .fighter.left { left: 8%; }
-.arena .fighter.right { right: 8%; }
-.arena .fighter .nm { font-size: clamp(15px, 2.4vw, 20px); letter-spacing: .02em; }
-.arena .a-vote {
-  position: absolute; bottom: 26px; z-index: 4; border: 0; cursor: pointer;
-  font-family: "Instrument Sans", sans-serif; font-weight: 800; font-size: 13px;
-  padding: 12px 20px; border-radius: 12px; color: #08101f;
-}
-.arena .a-vote.left { left: 8%; background: linear-gradient(120deg, #7fb0ff, #4f8bff); box-shadow: 0 12px 26px -10px rgba(90, 150, 255, .8); }
-.arena .a-vote.right { right: 8%; background: linear-gradient(120deg, #ff8ea3, #ff566f); color: #2a0410; box-shadow: 0 12px 26px -10px rgba(255, 90, 120, .8); }
-.arena .a-vote:disabled { opacity: .55; cursor: not-allowed; }
-@media (min-width: 560px) {
-  .arena .a-vote { padding: 13px 26px; font-size: 14px; }
-}
-@media (max-width: 560px) {
-  .arena { min-height: 440px; }
-  .arena .fighter { bottom: 120px; }
-  .arena .a-vote { bottom: 20px; padding: 10px 13px; font-size: 12px; }
+  70% { box-shadow: 0 0 0 8px rgba(255, 92, 138, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 92, 138, 0); }
 }

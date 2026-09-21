@@ -21,14 +21,14 @@ module.exports = {
         gold: { DEFAULT: "var(--gold)", soft: "var(--gold-soft)", ink: "var(--gold-ink)" },
       },
       fontFamily: {
-        display: ["Anton", "Arial Narrow", "system-ui", "sans-serif"],
-        sans: ["Instrument Sans", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+        display: ["Bricolage Grotesque", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
       },
       borderRadius: {
-        card: "16px",
+        card: "22px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(16,22,40,.04), 0 8px 24px -12px rgba(16,22,40,.18)",
+        card: "0 2px 4px rgba(90,70,170,.05), 0 22px 48px -26px rgba(90,70,170,.45)",
       },
     },
   },

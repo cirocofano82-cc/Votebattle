@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ContenderAvatar from "./ContenderAvatar";
+import VersusBar from "./VersusBar";
 import Modal from "./Modal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
@@ -15,7 +16,7 @@ export default function VotePanel({ battle }) {
   const initial = [...(battle.participants || [])].sort((a, b) => a.position - b.position);
   const [participants, setParticipants] = useState(initial);
   const [totalVotes, setTotalVotes] = useState(battle.totalVotes);
-  const [confirmFor, setConfirmFor] = useState(null); // participant pending confirmation
+  const [confirmFor, setConfirmFor] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [voting, setVoting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -34,7 +35,6 @@ export default function VotePanel({ battle }) {
     return Math.min(Math.max(1, Math.round(n)), maxQuantity);
   }
 
-  // The two "Back X" buttons in the arena route to the right next step by state.
   function pick(participant) {
     if (authLoading || voting) return;
     if (!user) {
@@ -85,40 +85,48 @@ export default function VotePanel({ battle }) {
   }
 
   return (
-    <div className="card p-0 overflow-hidden">
-      {/* Clash arena — the screen is the fight */}
-      <div className="arena">
-        <div className="halfA" />
-        <div className="halfB" />
-        <div className="seam" />
+    <div className="card p-5 sm:p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <span className="chip">{battle.categoryName}</span>
+        <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">
+          <span className="live-dot" /> Live · <span className="tnum text-text">{formatNumber(totalVotes)}</span> votes
+        </span>
+      </div>
 
-        <div className="a-top">
-          <span className="a-round">Round 01 · {battle.categoryName}</span>
-          <span className="a-live"><span className="live-dot" /> Live · {formatNumber(totalVotes)} voting</span>
+      {/* Fighters + scoreboard */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-5">
+        <Fighter p={a} side="a" />
+        <div className="text-center px-1">
+          <div className="font-display text-muted text-xs tracking-[0.3em]">VS</div>
+          <div className="font-display leading-none text-4xl sm:text-6xl mt-1 tnum">
+            <span className="text-sidea">{pa}</span>
+            <span className="text-muted mx-1">:</span>
+            <span className="text-sideb">{pb}</span>
+          </div>
         </div>
+        <Fighter p={b} side="b" />
+      </div>
 
-        <div className="a-score">
-          <div className="a-vs">VS</div>
-          <div className="a-tally"><b>{pa}</b><s>:</s><i>{pb}</i></div>
-          <span className="a-cast">{formatNumber(totalVotes)} votes cast</span>
-        </div>
+      <div className="mt-5">
+        <VersusBar pa={a?.percentage ?? 0} empty={empty} />
+      </div>
 
-        <ArenaFighter p={a} side="left" glow="rgba(79,139,255,.6)" />
-        <ArenaFighter p={b} side="right" glow="rgba(255,86,111,.6)" />
-
-        <button className="a-vote left" disabled={voting} onClick={() => pick(a)}>
-          Back {a?.name}
+      {/* Vote buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
+        <button className="btn btn-a" disabled={voting} onClick={() => pick(a)}>
+          Vote {a?.name}
         </button>
-        <button className="a-vote right" disabled={voting} onClick={() => pick(b)}>
-          Back {b?.name}
+        <button className="btn btn-b" disabled={voting} onClick={() => pick(b)}>
+          Vote {b?.name}
         </button>
       </div>
 
-      {/* Control strip: quantity + balance, or sign-in / out-of-credits */}
-      <div className="p-4 border-t border-line">
+      {/* Control strip */}
+      <div className="mt-5 border-t border-line pt-5">
         {toast && (
           <div
-            className={`mb-3 text-sm rounded-[10px] px-3 py-2 ${
+            className={`mb-3 text-sm rounded-[14px] px-3 py-2 ${
               toast.kind === "ok" ? "bg-sidea-soft text-sidea" : "bg-sideb-soft text-sideb"
             }`}
           >
@@ -133,10 +141,10 @@ export default function VotePanel({ battle }) {
         ) : (
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <span className="text-muted text-sm">Votes per tap</span>
-            <div className="inline-flex items-center rounded-[10px] border border-line-strong overflow-hidden">
+            <div className="inline-flex items-center rounded-full border border-line-strong overflow-hidden bg-surface">
               <button
                 type="button"
-                className="px-3 py-2 font-bold text-lg leading-none hover:bg-surface2 disabled:opacity-40"
+                className="px-3.5 py-2 font-bold text-lg leading-none hover:bg-surface2 disabled:opacity-40"
                 disabled={voting || quantity <= 1}
                 onClick={() => setQuantity((q) => clampQuantity(q - 1))}
                 aria-label="Decrease votes"
@@ -150,12 +158,12 @@ export default function VotePanel({ battle }) {
                 value={quantity}
                 disabled={voting}
                 onChange={(e) => setQuantity(clampQuantity(Number(e.target.value)))}
-                className="w-16 text-center bg-transparent font-bold tnum py-2 outline-none border-x border-line-strong [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-14 text-center bg-transparent font-bold tnum py-2 outline-none border-x border-line-strong [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 aria-label="Number of votes"
               />
               <button
                 type="button"
-                className="px-3 py-2 font-bold text-lg leading-none hover:bg-surface2 disabled:opacity-40"
+                className="px-3.5 py-2 font-bold text-lg leading-none hover:bg-surface2 disabled:opacity-40"
                 disabled={voting || quantity >= maxQuantity}
                 onClick={() => setQuantity((q) => clampQuantity(q + 1))}
                 aria-label="Increase votes"
@@ -205,13 +213,13 @@ export default function VotePanel({ battle }) {
   );
 }
 
-function ArenaFighter({ p, side, glow }) {
+function Fighter({ p, side }) {
+  const color = side === "b" ? "text-sideb" : "text-sidea";
   return (
-    <div className={`fighter ${side}`}>
-      <div style={{ filter: `drop-shadow(0 0 18px ${glow})` }}>
-        <ContenderAvatar name={p?.name} imageUrl={p?.imageUrl} side={side === "right" ? "b" : "a"} size="lg" />
-      </div>
-      <div className="nm">{p?.name}</div>
+    <div className="flex flex-col items-center text-center gap-2">
+      <ContenderAvatar name={p?.name} imageUrl={p?.imageUrl} side={side} size="lg" />
+      <span className={`font-display text-base sm:text-xl leading-tight ${color}`}>{p?.name}</span>
+      <span className="text-muted text-xs tnum">{formatNumber(p?.voteCount)} votes</span>
     </div>
   );
 }
