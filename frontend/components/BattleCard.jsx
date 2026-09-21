@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ContenderAvatar from "./ContenderAvatar";
 import VersusBar from "./VersusBar";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { formatNumber, formatPercent, categoryEmoji } from "@/lib/format";
 
 export default function BattleCard({ battle }) {
   const [a, b] = battle.participants || [];
@@ -9,10 +9,10 @@ export default function BattleCard({ battle }) {
   return (
     <Link
       href={`/battle/${battle.slug}`}
-      className="card overflow-hidden no-underline text-text hover:border-line-strong"
+      className="card overflow-hidden no-underline text-text transition duration-200 hover:-translate-y-1 hover:shadow-[0_28px_60px_-28px_rgba(90,70,170,.55)] hover:border-line-strong"
     >
       <div className="flex items-center justify-between px-4 pt-3">
-        <span className="chip">{battle.categoryName}</span>
+        <span className="chip">{categoryEmoji(battle.categoryName)} {battle.categoryName}</span>
         <span className="chip tnum">{formatNumber(battle.totalVotes)} votes</span>
       </div>
 

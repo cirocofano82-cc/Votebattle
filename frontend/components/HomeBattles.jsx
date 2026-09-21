@@ -7,7 +7,7 @@ import ContenderAvatar from "./ContenderAvatar";
 import VersusBar from "./VersusBar";
 import Spinner from "./Spinner";
 import { apiFetch } from "@/lib/api";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { formatNumber, formatPercent, categoryEmoji } from "@/lib/format";
 
 // Shared trending query. Seeded with the SSR result when it has data (good for
 // SEO / instant paint). When the SSR fetch came back empty — typically because
@@ -79,7 +79,7 @@ function FeaturedCard({ battle }) {
   return (
     <div className="card overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-4">
-        <span className="chip">{battle.categoryName}</span>
+        <span className="chip">{categoryEmoji(battle.categoryName)} {battle.categoryName}</span>
         <span className="chip">🔥 Trending #1</span>
       </div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 p-4">

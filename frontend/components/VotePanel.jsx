@@ -7,7 +7,8 @@ import VersusBar from "./VersusBar";
 import Modal from "./Modal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, categoryEmoji } from "@/lib/format";
+import { confettiBurst } from "@/lib/confetti";
 
 export default function VotePanel({ battle }) {
   const { user, loading: authLoading, refresh } = useAuth();
@@ -63,6 +64,7 @@ export default function VotePanel({ battle }) {
       setTotalVotes(d.battleTotalVotes);
       setQuantity(1);
       await refresh();
+      confettiBurst();
       setToast({
         kind: "ok",
         text:
@@ -88,7 +90,7 @@ export default function VotePanel({ battle }) {
     <div className="card p-5 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <span className="chip">{battle.categoryName}</span>
+        <span className="chip">{categoryEmoji(battle.categoryName)} {battle.categoryName}</span>
         <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">
           <span className="live-dot" /> Live · <span className="tnum text-text">{formatNumber(totalVotes)}</span> votes
         </span>

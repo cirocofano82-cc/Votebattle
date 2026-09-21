@@ -13,6 +13,28 @@ export function initials(name) {
   return name.trim().charAt(0).toUpperCase();
 }
 
+// A playful emoji for a battle category, matched loosely by name keyword.
+const CATEGORY_EMOJI = [
+  [/tech|ai|software|gadget/i, "💻"],
+  [/gam/i, "🎮"],
+  [/car|auto|motor/i, "🚗"],
+  [/entertain|movie|tv|film/i, "🎬"],
+  [/music|audio/i, "🎵"],
+  [/fashion|style|cloth|sneaker/i, "👟"],
+  [/food|drink|snack/i, "🥤"],
+  [/sport/i, "⚽"],
+  [/book|read/i, "📚"],
+  [/travel|place/i, "✈️"],
+  [/animal|pet/i, "🐾"],
+  [/science/i, "🔬"],
+];
+
+export function categoryEmoji(name) {
+  if (!name) return "🔥";
+  for (const [re, emoji] of CATEGORY_EMOJI) if (re.test(name)) return emoji;
+  return "🔥";
+}
+
 export function timeAgo(dateInput) {
   const date = new Date(dateInput);
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
