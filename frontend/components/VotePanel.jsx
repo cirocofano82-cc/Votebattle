@@ -7,7 +7,7 @@ import VersusBar from "./VersusBar";
 import Modal from "./Modal";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { formatNumber, formatPercent } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 
 export default function VotePanel({ battle }) {
   const { user, loading: authLoading, refresh } = useAuth();
@@ -69,27 +69,35 @@ export default function VotePanel({ battle }) {
   }
 
   return (
-    <div className="card p-5">
-      {/* Arena */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
-        <Contender p={a} side="a" />
-        <span className="font-display text-muted text-2xl self-center">VS</span>
-        <Contender p={b} side="b" />
-      </div>
+    <div className="card p-0 overflow-hidden">
+      {/* Clash arena — the screen is the fight */}
+      <div
+        className="relative p-5"
+        style={{
+          background:
+            "linear-gradient(100deg, rgba(79,139,255,.14), transparent 42%, transparent 58%, rgba(255,86,111,.14))",
+        }}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <span className="chip">{battle.categoryName}</span>
+          <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted">
+            <span className="live-dot" /> Live · <span className="tnum text-text">{formatNumber(totalVotes)}</span> votes
+          </span>
+        </div>
 
-      <div className="mt-4">
-        <VersusBar pa={a?.percentage ?? 0} empty={totalVotes === 0} />
-      </div>
-      <div className="flex justify-between mt-2 font-bold">
-        <span className="text-sidea">{formatPercent(a?.percentage)}</span>
-        <span className="text-sideb">{formatPercent(b?.percentage)}</span>
-      </div>
-      <div className="text-center text-muted text-sm mt-3 tnum">
-        {formatNumber(totalVotes)} total votes
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+          <Fighter p={a} side="a" />
+          <Scoreboard a={a} b={b} empty={totalVotes === 0} />
+          <Fighter p={b} side="b" />
+        </div>
+
+        <div className="mt-6">
+          <VersusBar pa={a?.percentage ?? 0} empty={totalVotes === 0} />
+        </div>
       </div>
 
       {/* Voting area */}
-      <div className="mt-5 border-t border-line pt-5">
+      <div className="p-5 border-t border-line">
         {toast && (
           <div
             className={`mb-3 text-sm rounded-[10px] px-3 py-2 ${
@@ -204,15 +212,38 @@ export default function VotePanel({ battle }) {
   );
 }
 
-function Contender({ p, side }) {
+function Fighter({ p, side }) {
+  const color = side === "b" ? "text-sideb" : "text-sidea";
+  const glow =
+    side === "b"
+      ? "drop-shadow(0 0 18px rgba(255,86,111,.55))"
+      : "drop-shadow(0 0 18px rgba(79,139,255,.55))";
   return (
     <div className="flex flex-col items-center text-center gap-2">
-      <ContenderAvatar name={p?.name} imageUrl={p?.imageUrl} side={side} size="lg" />
-      <span className="font-semibold">{p?.name}</span>
-      <span className={`font-display text-3xl ${side === "b" ? "text-sideb" : "text-sidea"}`}>
-        {formatPercent(p?.percentage)}
-      </span>
-      <span className="text-muted text-sm tnum">{formatNumber(p?.voteCount)} votes</span>
+      <div style={{ filter: glow }}>
+        <ContenderAvatar name={p?.name} imageUrl={p?.imageUrl} side={side} size="lg" />
+      </div>
+      <span className={`font-display text-lg sm:text-xl leading-tight ${color}`}>{p?.name}</span>
+      <span className="text-muted text-xs tnum">{formatNumber(p?.voteCount)} votes</span>
+    </div>
+  );
+}
+
+// Center scoreboard: the two live percentages face off, boxing-card style.
+function Scoreboard({ a, b, empty }) {
+  const pa = empty ? 50 : Math.round(a?.percentage ?? 0);
+  const pb = empty ? 50 : Math.round(b?.percentage ?? 0);
+  return (
+    <div className="text-center px-1">
+      <div className="font-display text-muted text-xs tracking-[0.3em]">VS</div>
+      <div
+        className="font-display leading-none text-4xl sm:text-5xl mt-1 tnum"
+        style={{ filter: "drop-shadow(0 2px 24px rgba(0,0,0,.5))" }}
+      >
+        <span className="text-sidea">{pa}</span>
+        <span className="text-muted mx-1">:</span>
+        <span className="text-sideb">{pb}</span>
+      </div>
     </div>
   );
 }

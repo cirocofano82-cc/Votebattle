@@ -2,66 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================================================
+   VoteBattle — "Clash" theme. A committed dark, neon arena look: deep navy
+   ground, electric-blue side A vs hot-red side B, gold Vote Credits.
+   =========================================================================== */
 :root {
-  --bg: #f4f5f8;
-  --surface: #ffffff;
-  --surface-2: #eef0f5;
-  --text: #151a22;
-  --muted: #5c6674;
-  --line: #e3e6ee;
-  --line-strong: #d3d8e3;
-  --a: #2563eb;
-  --a-soft: #dce7ff;
-  --b: #f43f5e;
-  --b-soft: #ffe1e7;
-  --gold: #c98a06;
-  --gold-ink: #8a5e00;
-  --gold-soft: #fdf0d0;
-  --ink: #0f1420;
-  --on-ink: #f4f5f8;
-  color-scheme: light;
+  --bg: #070a12;
+  --surface: #0f1622;
+  --surface-2: #18212f;
+  --text: #e9eefb;
+  --muted: #8a97ad;
+  --line: #212d40;
+  --line-strong: #2e3c54;
+  --a: #4f8bff;
+  --a-soft: #14224a;
+  --b: #ff566f;
+  --b-soft: #3a1522;
+  --gold: #ffce54;
+  --gold-ink: #ffce54;
+  --gold-soft: #2b2512;
+  --ink: #eef2fb;
+  --on-ink: #0a0f1a;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0d1016;
-    --surface: #161b23;
-    --surface-2: #1e242e;
-    --text: #eceff4;
-    --muted: #9aa4b3;
-    --line: #29303b;
-    --line-strong: #333b48;
-    --a: #5288f7;
-    --a-soft: #1a2b4d;
-    --b: #fb5e77;
-    --b-soft: #3d1f28;
-    --gold: #f2b638;
-    --gold-ink: #f2b638;
-    --gold-soft: #37301c;
-    --ink: #eceff4;
-    --on-ink: #0d1016;
+/* Clash is a single, committed visual world — keep it dark in every theme
+   state so the identity holds regardless of OS or an explicit toggle. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
     color-scheme: dark;
   }
-}
-
-:root[data-theme="dark"] {
-  --bg: #0d1016;
-  --surface: #161b23;
-  --surface-2: #1e242e;
-  --text: #eceff4;
-  --muted: #9aa4b3;
-  --line: #29303b;
-  --line-strong: #333b48;
-  --a: #5288f7;
-  --a-soft: #1a2b4d;
-  --b: #fb5e77;
-  --b-soft: #3d1f28;
-  --gold: #f2b638;
-  --gold-ink: #f2b638;
-  --gold-soft: #37301c;
-  --ink: #eceff4;
-  --on-ink: #0d1016;
-  color-scheme: dark;
 }
 
 html, body {
@@ -70,7 +40,11 @@ html, body {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(1100px 480px at 85% -8%, rgba(79, 139, 255, .16), transparent 60%),
+    radial-gradient(950px 460px at 6% -6%, rgba(255, 86, 111, .13), transparent 58%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
@@ -82,7 +56,7 @@ body {
 @layer components {
   .container-page { @apply max-w-[1120px] mx-auto px-5; }
   .chip { @apply inline-flex items-center gap-1 text-[11px] font-bold tracking-wide uppercase text-muted bg-surface2 rounded-full px-2.5 py-1; }
-  .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-[10px] px-4 py-2 border border-transparent cursor-pointer no-underline transition-colors; }
+  .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-[10px] px-4 py-2 border border-transparent cursor-pointer no-underline transition; }
   .btn:disabled { @apply opacity-60 cursor-not-allowed; }
   .btn-ink { @apply bg-ink text-onink; }
   .btn-ghost { @apply bg-transparent border-line-strong text-text hover:bg-surface2; }
@@ -94,16 +68,38 @@ body {
   .card { @apply bg-surface border border-line rounded-card shadow-card; }
 }
 
-/* Split bar for versus results */
+/* Neon glow on the action buttons — the vote buttons should feel electric. */
+.btn-a { box-shadow: 0 12px 30px -14px rgba(79, 139, 255, .9); }
+.btn-b { box-shadow: 0 12px 30px -14px rgba(255, 86, 111, .9); }
+.btn-gold { box-shadow: 0 12px 30px -14px rgba(255, 206, 84, .8); }
+@media (prefers-reduced-motion: no-preference) {
+  .btn-a:hover, .btn-b:hover, .btn-gold:hover { filter: brightness(1.07); transform: translateY(-1px); }
+}
+
+/* Split bar for versus results — with a soft neon bleed on each side. */
 .vs-bar {
   height: 14px;
   border-radius: 999px;
   overflow: hidden;
   display: flex;
   background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
 }
-.vs-bar .fa { background: var(--a); height: 100%; }
-.vs-bar .fb { background: var(--b); height: 100%; }
+.vs-bar .fa { background: linear-gradient(90deg, #3b74ff, var(--a)); height: 100%; box-shadow: 0 0 16px rgba(79, 139, 255, .55); }
+.vs-bar .fb { background: linear-gradient(90deg, var(--b), #ff3d5f); height: 100%; box-shadow: 0 0 16px rgba(255, 86, 111, .55); }
 @media (prefers-reduced-motion: no-preference) {
   .vs-bar .fa, .vs-bar .fb { transition: width .5s cubic-bezier(.4, 0, .2, 1); }
+}
+
+/* Pulsing "live" dot used in the arena. */
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--b);
+  box-shadow: 0 0 0 0 rgba(255, 86, 111, .7);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .live-dot { animation: livepulse 1.7s infinite; }
+}
+@keyframes livepulse {
+  70% { box-shadow: 0 0 0 8px rgba(255, 86, 111, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 86, 111, 0); }
 }
