@@ -209,7 +209,9 @@ public class BattleService : IBattleService
 
         var slug = baseSlug;
         var suffix = 2;
-        while (await _db.Battles.AnyAsync(b => b.Slug == slug, ct))
+        // Ignore the soft-delete filter: the unique Slug index still covers deleted
+        // rows, so a slug taken by a soft-deleted battle must not be reused.
+        while (await _db.Battles.IgnoreQueryFilters().AnyAsync(b => b.Slug == slug, ct))
         {
             slug = $"{baseSlug}-{suffix}";
             suffix++;

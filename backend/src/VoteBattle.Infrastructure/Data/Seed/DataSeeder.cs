@@ -161,7 +161,9 @@ public static class DataSeeder
         foreach (var def in definitions)
         {
             var slug = SlugGenerator.Generate(def.Title);
-            if (await db.Battles.AnyAsync(b => b.Slug == slug, ct))
+            // IgnoreQueryFilters so a soft-deleted demo battle still counts as
+            // existing — otherwise we'd re-insert its slug and hit the unique index.
+            if (await db.Battles.IgnoreQueryFilters().AnyAsync(b => b.Slug == slug, ct))
                 continue;
 
             if (!categories.TryGetValue(def.CategorySlug, out var categoryId))

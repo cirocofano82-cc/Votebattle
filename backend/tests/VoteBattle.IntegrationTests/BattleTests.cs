@@ -164,6 +164,38 @@ public class BattleTests
     }
 
     [Fact]
+    public async Task Slug_of_a_soft_deleted_battle_is_not_reused()
+    {
+        var client = _factory.CreateClient();
+        await client.LoginAsAdminAsync();
+
+        var title = $"Reuse {Guid.NewGuid().ToString("N")[..8]} vs Test";
+        async Task<(string slug, string id)> Create()
+        {
+            var res = await client.PostAsJsonAsync("/api/battles", new
+            {
+                title,
+                categoryId = 1,
+                competitorA = new { name = "A" },
+                competitorB = new { name = "B" }
+            });
+            res.EnsureSuccessStatusCode();
+            var slug = (await res.ReadDataAsync()).GetString();
+            var det = await (await client.GetAsync($"/api/battles/{slug}")).ReadDataAsync();
+            return (slug, det.GetProperty("id").GetString());
+        }
+
+        var first = await Create();
+        await client.PostAsJsonAsync($"/api/admin/battles/{first.id}/moderate", new { action = "Suspend" });
+        (await client.DeleteAsync($"/api/admin/battles/{first.id}")).EnsureSuccessStatusCode();
+
+        // Creating the same title again must succeed with a fresh slug, not collide
+        // with the soft-deleted battle's slug on the unique index.
+        var second = await Create();
+        Assert.NotEqual(first.slug, second.slug);
+    }
+
+    [Fact]
     public async Task Admin_can_delete_a_rejected_battle()
     {
         var client = _factory.CreateClient();
