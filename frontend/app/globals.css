@@ -103,3 +103,72 @@ body {
   70% { box-shadow: 0 0 0 8px rgba(255, 86, 111, 0); }
   100% { box-shadow: 0 0 0 0 rgba(255, 86, 111, 0); }
 }
+
+/* ===========================================================================
+   Clash arena — full-bleed diagonal split duel (battle page vote panel).
+   =========================================================================== */
+.arena {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  color: #fff;
+  background: #05070e;
+  font-family: "Anton", "Arial Narrow", system-ui, sans-serif;
+}
+.arena .halfA {
+  position: absolute; inset: 0;
+  clip-path: polygon(0 0, 59% 0, 43% 100%, 0 100%);
+  background: radial-gradient(120% 120% at 20% 30%, #2f5fe0, #0a1a4a 70%, #050a1e);
+}
+.arena .halfB {
+  position: absolute; inset: 0;
+  clip-path: polygon(59% 0, 100% 0, 100% 100%, 43% 100%);
+  background: radial-gradient(120% 120% at 82% 70%, #ff3d63, #7c0f2c 70%, #3a0715);
+}
+.arena .seam {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #dfe9ff, #fff, #ffd9e2);
+  clip-path: polygon(58.2% 0, 60% 0, 44% 100%, 42.2% 100%);
+  filter: drop-shadow(0 0 10px rgba(150, 190, 255, .85));
+  opacity: .9;
+}
+.arena .a-top {
+  position: absolute; top: 16px; left: 0; right: 0; padding: 0 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; z-index: 3;
+}
+.arena .a-round { color: rgba(255, 255, 255, .72); }
+.arena .a-live { display: inline-flex; align-items: center; gap: 7px; color: #fff; }
+.arena .a-score { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); text-align: center; z-index: 3; }
+.arena .a-vs { font-size: clamp(28px, 6vw, 52px); letter-spacing: .06em; text-shadow: 0 4px 30px rgba(0, 0, 0, .5); }
+.arena .a-tally { font-size: clamp(40px, 9vw, 80px); line-height: .85; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.arena .a-tally b { color: #8fbcff; }
+.arena .a-tally i { font-style: normal; color: #ff8098; }
+.arena .a-tally s { color: #5a6b8c; text-decoration: none; padding: 0 8px; }
+.arena .a-cast {
+  margin-top: 8px; display: inline-block; font-family: "Instrument Sans", sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: #cdd7ea; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px; padding: 5px 12px;
+}
+.arena .fighter { position: absolute; bottom: 108px; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2; }
+.arena .fighter.left { left: 8%; }
+.arena .fighter.right { right: 8%; }
+.arena .fighter .nm { font-size: clamp(15px, 2.4vw, 20px); letter-spacing: .02em; }
+.arena .a-vote {
+  position: absolute; bottom: 26px; z-index: 4; border: 0; cursor: pointer;
+  font-family: "Instrument Sans", sans-serif; font-weight: 800; font-size: 13px;
+  padding: 12px 20px; border-radius: 12px; color: #08101f;
+}
+.arena .a-vote.left { left: 8%; background: linear-gradient(120deg, #7fb0ff, #4f8bff); box-shadow: 0 12px 26px -10px rgba(90, 150, 255, .8); }
+.arena .a-vote.right { right: 8%; background: linear-gradient(120deg, #ff8ea3, #ff566f); color: #2a0410; box-shadow: 0 12px 26px -10px rgba(255, 90, 120, .8); }
+.arena .a-vote:disabled { opacity: .55; cursor: not-allowed; }
+@media (min-width: 560px) {
+  .arena .a-vote { padding: 13px 26px; font-size: 14px; }
+}
+@media (max-width: 560px) {
+  .arena { min-height: 440px; }
+  .arena .fighter { bottom: 120px; }
+  .arena .a-vote { bottom: 20px; padding: 10px 13px; font-size: 12px; }
+}
